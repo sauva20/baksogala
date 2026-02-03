@@ -1,0 +1,179 @@
+/* --- Header & Navbar Styles --- */
+.main-header {
+    background-color: var(--text-light);
+    padding: 15px 0;
+    box-shadow: 0 2px 5px var(--shadow-light);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.navbar-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo img {
+    height: 50px;
+    width: auto;
+    display: block;
+}
+/* --- Header & Navbar Styles --- */
+.main-header {
+    background-color: var(--text-light);
+    padding: 15px 0;
+    box-shadow: 0 2px 5px var(--shadow-light);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.navbar-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo a { /* Ubah styling untuk container logo */
+    display: flex;
+    align-items: center; /* Pusatkan logo dan teks secara vertikal */
+    gap: 10px; /* Memberi jarak antara gambar dan teks */
+    text-decoration: none;
+    color: var(--text-dark);
+}
+
+.logo img {
+    height: 50px;
+    width: auto;
+    display: block;
+}
+
+.logo-text { /* Styling untuk teks nama Bakso Gala */
+    font-size: 1.5em; /* Sesuaikan ukuran font */
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+/* ... Kode CSS navbar lainnya ... */
+
+.main-nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+}
+
+.main-nav ul li {
+    margin-left: 30px;
+}
+
+.main-nav ul li a {
+    text-decoration: none;
+    color: var(--text-dark);
+    font-weight: 600;
+    font-size: 1.05em;
+    transition: color 0.3s ease;
+    
+}
+
+.main-nav ul li a:hover {
+    color: var(--primary-color);
+}
+
+/* Style untuk tombol Login / Daftar */
+.nav-btn-login {
+    background-color: var(--primary-color);
+    color: var(--text-light) !important;
+    padding: 10px 20px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+    font-weight: bold !important;
+    margin-left: 30px;
+}
+
+.nav-btn-login:hover {
+    background-color: #2F3D65;
+    color: var(--text-light);
+}
+
+/* Hamburger Menu untuk Mobile */
+.hamburger-menu {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 2em;
+    cursor: pointer;
+    color: var(--text-dark);
+}
+/* Styling untuk Ikon Keranjang */
+.nav-cart-icon {
+    position: relative; /* Penting untuk penempatan badge */
+    font-size: 1.2em; /* Ukuran ikon */
+    color: var(--text-dark);
+    transition: color 0.3s ease;
+    padding: 5px;
+}
+
+.nav-cart-icon:hover {
+    color: var(--primary-color);
+}
+
+.cart-count {
+    position: absolute;
+    top: -5px;
+    right: -10px;
+    background-color: var(--secondary-color); /* Warna kuning */
+    color: var(--primary-color);
+    font-size: 0.7em;
+    font-weight: bold;
+    border-radius: 50%;
+    padding: 0px 5px;
+    border: 1px solid var(--text-light);
+}
+
+/* Penyesuaian Responsif */
+@media (max-width: 768px) {
+    .main-nav ul li:nth-last-child(2) { /* Menargetkan ikon keranjang */
+        margin: 15px auto;
+        padding-top: 15px;
+        border-top: 1px solid #eee;
+    }
+}
+
+/* --- Responsive Adjustments untuk Navbar --- */
+@media (max-width: 768px) {
+    .main-nav {
+        display: none;
+        flex-direction: column;
+        width: 100%;
+        position: absolute;
+        top: 80px;
+        left: 0;
+        background-color: var(--text-light);
+        box-shadow: 0 5px 10px var(--shadow-light);
+        padding: 20px 0;
+        text-align: center;
+    }
+
+    .main-nav.active {
+        display: flex;
+    }
+
+    .main-nav ul {
+        flex-direction: column;
+    }
+
+    .main-nav ul li {
+        margin: 15px 0;
+    }
+
+    .nav-btn-login {
+        margin: 15px auto;
+    }
+
+    .hamburger-menu {
+        display: block;
+    }
+}

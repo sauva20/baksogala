@@ -1,0 +1,126 @@
+/* --- Register Page Specific Styles --- */
+
+.register-page {
+    background-color: var(--background-light);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 80px 20px;
+}
+
+.register-container {
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    padding: 40px;
+    width: 100%;
+    max-width: 450px;
+    text-align: center;
+}
+
+.register-form h2 {
+    font-size: 2.2em;
+    color: var(--primary-color);
+    margin-bottom: 10px;
+}
+
+.register-form p {
+    color: #888;
+    margin-bottom: 30px;
+}
+
+.form-group {
+    text-align: left;
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text-dark);
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1em;
+    color: var(--text-dark);
+    transition: border-color 0.3s ease;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: var(--secondary-color);
+}
+
+.form-checkbox {
+    text-align: left;
+    margin-bottom: 20px;
+}
+
+.form-checkbox input {
+    margin-right: 10px;
+}
+
+.form-checkbox label {
+    font-size: 0.9em;
+    color: #666;
+}
+
+.form-checkbox a {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.form-checkbox a:hover {
+    color: var(--secondary-color);
+    text-decoration: underline;
+}
+
+.btn.btn-primary {
+    width: 100%;
+    padding: 15px;
+    font-size: 1.1em;
+    font-weight: bold;
+    background-color: var(--primary-color);
+    color: var(--text-light) !important;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn.btn-primary:hover {
+    background-color: #233052;
+}
+
+.login-link {
+    margin-top: 20px;
+    font-size: 0.9em;
+    color: #666;
+}
+
+.login-link a {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.login-link a:hover {
+    color: var(--secondary-color);
+    text-decoration: underline;
+}
+
+/* Responsif */
+@media (max-width: 480px) {
+    .register-container {
+        padding: 30px;
+    }
+    .register-form h2 {
+        font-size: 1.8em;
+    }
+}

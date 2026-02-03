@@ -1,0 +1,58 @@
+/* --- Global Styles --- */
+@import url('https://fonts.cdnfonts.com/css/bolton-sans');
+
+:root {
+    /* Color Palette Frontend */
+    --primary-color-front: #B1935B;
+    --secondary-color-front: #2F3D65;
+    --background-light-front: #FAF9F2;
+
+    /* Color Palette Admin */
+    --primary-color-admin: #2c3e50;
+    --secondary-color-admin: #34495e;
+
+    /* General Colors */
+    --text-dark: #333;
+    --text-light: #fff;
+    --border-color: #ddd;
+    --shadow-light: rgba(0, 0, 0, 0.1);
+}
+
+body {
+    font-family: 'Bolton Sans', sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    line-height: 1.6;
+}
+
+*, *::before, *::after {
+    box-sizing: inherit;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+h1, h2, h3 {
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+a {
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+/* Button Base Styles */
+.btn {
+    display: inline-block;
+    padding: 12px 25px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-align: center;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    cursor: pointer;
+}

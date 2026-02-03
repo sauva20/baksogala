@@ -1,0 +1,131 @@
+:root {
+    --primary-gold: #B1935B;
+    --primary-navy: #2F3D65;
+}
+
+/* --- GRID LAYOUT --- */
+.promo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 25px;
+    margin-top: 20px;
+}
+
+/* --- TICKET CARD DESIGN --- */
+.ticket-card {
+    display: flex;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+    min-height: 160px;
+    border: 1px solid #eee;
+}
+.ticket-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
+.ticket-card.inactive { filter: grayscale(1); opacity: 0.7; }
+
+/* Bagian Kiri (Biru) */
+.ticket-left {
+    width: 35%;
+    background: linear-gradient(135deg, var(--primary-navy) 0%, #162038 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    border-right: 2px dashed rgba(255,255,255,0.3);
+}
+
+.discount-wrapper { text-align: center; }
+.big-number { font-size: 2.2rem; font-weight: 800; display: block; line-height: 1; }
+.big-number.small-font { font-size: 1.5rem; }
+.label { font-size: 0.8rem; letter-spacing: 2px; opacity: 0.8; }
+
+/* Lubang Tiket */
+.ticket-hole-top, .ticket-hole-bottom {
+    position: absolute; width: 20px; height: 20px; background: #f4f6f9; /* Sesuaikan warna bg halaman */
+    border-radius: 50%; right: -10px;
+}
+.ticket-hole-top { top: -10px; }
+.ticket-hole-bottom { bottom: -10px; }
+
+/* Bagian Kanan (Info) */
+.ticket-right {
+    width: 65%;
+    padding: 15px 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.ticket-header { display: flex; justify-content: space-between; align-items: center; }
+.badge-type { background: #f0f2f5; font-size: 0.7rem; padding: 2px 8px; border-radius: 4px; color: #666; font-weight: 600; }
+.status-dot { width: 10px; height: 10px; border-radius: 50%; display: block; }
+.status-dot.active { background: #2ecc71; box-shadow: 0 0 5px #2ecc71; }
+.status-dot.inactive { background: #e74c3c; }
+
+.voucher-code {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-navy);
+    margin: 5px 0;
+    letter-spacing: 1px;
+}
+
+.voucher-meta p {
+    font-size: 0.8rem; color: #777; margin: 2px 0;
+    display: flex; align-items: center; gap: 8px;
+}
+
+.ticket-actions {
+    margin-top: 10px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.btn-action {
+    border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; transition: 0.2s;
+    display: flex; align-items: center; gap: 5px;
+    text-decoration: none;
+}
+.btn-action.edit { background: #e3f2fd; color: #1976d2; }
+.btn-action.edit:hover { background: #1976d2; color: white; }
+.btn-action.delete { background: #ffebee; color: #c62828; }
+.btn-action.delete:hover { background: #c62828; color: white; }
+
+/* --- MODAL (POPUP) STYLE --- */
+.modal-backdrop {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6); 
+    display: none; /* Default Tersembunyi */
+    align-items: center; justify-content: center; z-index: 9999;
+    opacity: 0; transition: opacity 0.3s;
+}
+.modal-backdrop.show { display: flex; opacity: 1; } /* Class ini yg dimunculkan JS */
+
+.modal-content-custom {
+    background: white; width: 90%; max-width: 600px; border-radius: 12px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.3); overflow: hidden; 
+    transform: translateY(-20px); transition: transform 0.3s;
+}
+.modal-backdrop.show .modal-content-custom { transform: translateY(0); }
+
+.modal-header { padding: 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+.modal-body { padding: 25px; }
+.modal-footer { padding: 20px; background: #f9f9f9; text-align: right; border-top: 1px solid #eee; }
+
+/* Tombol Header */
+.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+.btn-add { background: var(--primary-navy); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.btn-add:hover { background: #1a2540; }
+
+/* Form Elements */
+.form-control { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; margin-top: 5px; box-sizing: border-box; }
+.form-row { display: flex; gap: 15px; margin-bottom: 15px; }
+.col-6 { flex: 1; }
+.btn-save { background: var(--primary-navy); color: white; border: none; padding: 10px 25px; border-radius: 6px; cursor: pointer; }
+.btn-cancel { background: white; border: 1px solid #ddd; padding: 10px 20px; border-radius: 6px; cursor: pointer; margin-right: 10px; }

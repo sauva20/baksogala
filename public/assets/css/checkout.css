@@ -1,0 +1,113 @@
+/* --- Checkout Page Styles --- */
+
+.checkout-page {
+    padding: 80px 0;
+    background-color: var(--background-light);
+}
+
+.checkout-page h1 {
+    text-align: center;
+    margin-bottom: 40px;
+    color: var(--secondary-color); /* Menggunakan secondary-color */
+}
+
+.checkout-wrapper {
+    max-width: 600px;
+    margin: 0 auto;
+    background-color: #fff;
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.pesanan-ringkasan h2, .form-checkout h2 {
+    font-size: 1.8em;
+    color: var(--primary-color); /* Menggunakan primary-color */
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+.pesanan-item, .pesanan-total, .checkout-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.1em;
+    margin-bottom: 10px;
+}
+
+.pesanan-item span:first-child {
+    color: #555;
+}
+
+.pesanan-item span:last-child {
+    font-weight: 600;
+}
+
+.pesanan-total {
+    padding-top: 10px;
+    border-top: 1px dashed #ddd;
+    margin-top: 20px;
+    font-weight: bold;
+}
+
+.form-checkout {
+    margin-top: 40px;
+}
+
+.form-checkout .form-group {
+    margin-bottom: 25px;
+}
+
+.form-checkout label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text-dark);
+}
+
+.form-checkout select, 
+.form-checkout input[type="text"], 
+.form-checkout input[type="email"], 
+.form-checkout input[type="tel"], 
+.form-checkout textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1em;
+    color: var(--text-dark);
+    box-sizing: border-box;
+}
+
+.form-checkout input:focus, 
+.form-checkout select:focus, 
+.form-checkout textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.checkout-total {
+    margin-top: 30px;
+    font-size: 1.5em;
+    padding-top: 20px;
+    border-top: 2px solid var(--secondary-color);
+}
+
+.btn-checkout {
+    width: 100%;
+    margin-top: 20px;
+    padding: 15px;
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .checkout-wrapper {
+        padding: 20px;
+    }
+    .pesanan-ringkasan h2, .form-checkout h2 {
+        font-size: 1.5em;
+    }
+}

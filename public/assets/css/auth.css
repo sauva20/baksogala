@@ -1,0 +1,311 @@
+:root {
+    --primary-color: #B1935B;  /* Emas Bakso Gala */
+    --secondary-color: #2F3D65; /* Biru Tua */
+    --background-light: #FAF9F2;
+    --text-dark: #333;
+    --white: #FFFFFF;
+}
+
+.auth-page {
+    background: var(--background-light);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    height: 100vh; /* Full screen height */
+    padding-top: 50px; /* Jaga jarak dari navbar */
+}
+
+/* Container Utama */
+.container-auth {
+    background-color: var(--white);
+    border-radius: 20px;
+    box-shadow: 0 14px 28px rgba(0,0,0,0.15), 
+                0 10px 10px rgba(0,0,0,0.12);
+    position: relative;
+    overflow: hidden;
+    width: 850px;
+    max-width: 100%;
+    min-height: 550px; /* Tinggi box */
+}
+
+.form-container {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    transition: all 0.6s ease-in-out;
+}
+
+/* Form Styles */
+.container-auth form {
+    background-color: var(--white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 0 50px;
+    height: 100%;
+    text-align: center;
+}
+
+.container-auth h1 {
+    font-weight: bold;
+    margin: 0;
+    color: var(--secondary-color);
+    margin-bottom: 15px;
+}
+
+.container-auth span {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 15px;
+}
+
+.social-container {
+    margin: 15px 0;
+}
+
+.social-container a {
+    border: 1px solid #ddd;
+    border-radius: 50%;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 5px;
+    height: 40px;
+    width: 40px;
+    color: var(--text-dark);
+    text-decoration: none;
+    transition: 0.3s;
+}
+
+.social-container a:hover {
+    background-color: var(--background-light);
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.container-auth input {
+    background-color: #eee;
+    border: none;
+    padding: 12px 15px;
+    margin: 8px 0;
+    width: 100%;
+    border-radius: 5px;
+    outline: none;
+    transition: 0.3s;
+}
+
+.container-auth input:focus {
+    background-color: #e0e0e0;
+    box-shadow: inset 0 0 0 2px var(--primary-color);
+}
+
+/* Tombol Utama (Login/Daftar) */
+.container-auth button {
+    border-radius: 20px;
+    border: 1px solid var(--primary-color);
+    background-color: var(--primary-color);
+    color: #FFFFFF;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 12px 45px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: transform 80ms ease-in;
+    margin-top: 15px;
+    cursor: pointer;
+}
+
+.container-auth button:active {
+    transform: scale(0.95);
+}
+
+.container-auth button:focus {
+    outline: none;
+}
+
+/* Tombol Ghost (Di Panel Overlay) */
+.container-auth button.ghost {
+    background-color: transparent;
+    border-color: #FFFFFF;
+}
+
+.forgot-pass {
+    color: #333;
+    font-size: 14px;
+    text-decoration: none;
+    margin: 15px 0;
+    border-bottom: 1px solid transparent;
+    transition: 0.3s;
+}
+
+.forgot-pass:hover {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+}
+
+/* --- ANIMASI SLIDING --- */
+
+/* Posisi Awal Sign In */
+.sign-in-container {
+    left: 0;
+    width: 50%;
+    z-index: 2;
+}
+
+/* Posisi Awal Sign Up (Tersembunyi) */
+.sign-up-container {
+    left: 0;
+    width: 50%;
+    opacity: 0;
+    z-index: 1;
+}
+
+/* Animasi saat panel aktif */
+.container-auth.right-panel-active .sign-in-container {
+    transform: translateX(100%);
+}
+
+.container-auth.right-panel-active .sign-up-container {
+    transform: translateX(100%);
+    opacity: 1;
+    z-index: 5;
+    animation: show 0.6s;
+}
+
+@keyframes show {
+    0%, 49.99% {
+        opacity: 0;
+        z-index: 1;
+    }
+    50%, 100% {
+        opacity: 1;
+        z-index: 5;
+    }
+}
+
+/* Overlay Container (Panel Berwarna) */
+.overlay-container {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 50%;
+    height: 100%;
+    overflow: hidden;
+    transition: transform 0.6s ease-in-out;
+    z-index: 100;
+}
+
+.container-auth.right-panel-active .overlay-container {
+    transform: translateX(-100%);
+}
+
+.overlay {
+    background: var(--primary-color);
+    background: -webkit-linear-gradient(to right, #B1935B, #947a48);
+    background: linear-gradient(to right, #B1935B, #947a48);
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: 0 0;
+    color: #FFFFFF;
+    position: relative;
+    left: -100%;
+    height: 100%;
+    width: 200%;
+    transform: translateX(0);
+    transition: transform 0.6s ease-in-out;
+}
+
+.container-auth.right-panel-active .overlay {
+    transform: translateX(50%);
+}
+
+.overlay-panel {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 0 40px;
+    text-align: center;
+    top: 0;
+    height: 100%;
+    width: 50%;
+    transform: translateX(0);
+    transition: transform 0.6s ease-in-out;
+}
+
+.overlay-panel h1 {
+    color: #fff; /* Warna text di overlay */
+}
+
+.overlay-panel p {
+    font-size: 14px;
+    font-weight: 100;
+    line-height: 20px;
+    letter-spacing: 0.5px;
+    margin: 20px 0 30px;
+}
+
+.overlay-left {
+    transform: translateX(-20%);
+}
+
+.container-auth.right-panel-active .overlay-left {
+    transform: translateX(0);
+}
+
+.overlay-right {
+    right: 0;
+    transform: translateX(0);
+}
+
+.container-auth.right-panel-active .overlay-right {
+    transform: translateX(20%);
+}
+
+/* Responsif untuk Mobile */
+@media (max-width: 768px) {
+    .auth-page {
+        height: auto;
+        padding: 100px 20px 50px;
+    }
+
+    .container-auth {
+        width: 100%;
+        min-height: 800px; /* Lebih tinggi untuk menampung stack */
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-container, .overlay-container {
+        position: relative;
+        width: 100%;
+        height: auto;
+        top: auto;
+        left: auto;
+        transform: none !important;
+    }
+    
+    .overlay-container {
+        height: 200px;
+        order: 1; /* Pindah ke atas */
+    }
+    
+    .sign-in-container {
+        order: 2;
+    }
+    
+    .sign-up-container {
+        order: 3;
+        opacity: 1;
+        z-index: 1;
+        display: none; /* Sembunyikan default di mobile */
+    }
+
+    /* Kita matikan efek sliding di mobile dan pakai toggle biasa lewat JS jika perlu,
+       atau biarkan stack. Tapi sliding UX ini paling bagus di Desktop.
+       Untuk mobile, biasanya lebih baik menampilkan form login saja dengan link 'Daftar' manual.
+    */
+}
