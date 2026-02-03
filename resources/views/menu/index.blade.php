@@ -22,14 +22,14 @@
         .btn-mobile-add, .sticky-cart-bar, .modal-bottom-bar-mobile, .mobile-category-nav, .mobile-table-banner, .mobile-header { display: none; }
 
         /* --- ESTETIK MODAL ADDONS (CHIPS STYLE) --- */
-        .modal-addons { 
+        .modal-addons, .modal-variants { 
             margin: 20px 0; 
             padding: 0; 
             background: transparent; 
             border: none; 
         }
         
-        .modal-addons h4 {
+        .modal-addons h4, .modal-variants h4 {
             font-size: 0.95rem; 
             font-weight: 700; 
             color: #555; 
@@ -38,46 +38,47 @@
             letter-spacing: 0.5px;
         }
 
-        .addons-grid { 
+        .addons-grid, .variants-grid { 
             display: flex; 
-            flex-wrap: wrap; /* Agar turun ke bawah jika penuh */
+            flex-wrap: wrap; 
             gap: 10px; 
         }
 
-        /* Desain Item Topping (Seperti Tombol Pilihan) */
-        .addon-item { 
+        /* --- STYLE ITEM PILIHAN (Addon & Variant) --- */
+        .addon-item, .variant-item { 
             display: flex; 
             align-items: center; 
             justify-content: space-between; 
-            padding: 8px 12px; 
+            padding: 10px 15px; 
             background: #fff; 
             border: 1px solid #e0e0e0; 
-            border-radius: 50px; /* Rounded pill shape */
+            border-radius: 50px; 
             cursor: pointer; 
             transition: all 0.2s ease;
             user-select: none;
-            flex-grow: 0; 
-            min-width: 48%; /* Di mobile jadi 2 kolom */
+            flex-grow: 1; /* Biar rata lebar */
+            min-width: 45%; 
+            position: relative;
         }
 
-        /* Saat di-hover */
-        .addon-item:hover {
+        /* Hover Effect */
+        .addon-item:hover, .variant-item:hover {
             border-color: var(--primary-color);
             background: #fffbf0;
         }
 
-        /* Saat dipilih (Checked) - Menggunakan :has selector modern */
-        .addon-item:has(input:checked) {
-            background-color: #fff8e1; /* Warna kuning soft */
+        /* Selected State (Checked) */
+        .addon-item:has(input:checked), .variant-item:has(input:checked) {
+            background-color: #fff8e1; 
             border-color: var(--primary-color);
             color: var(--primary-color);
             box-shadow: 0 2px 5px rgba(177, 147, 91, 0.2);
+            font-weight: 700;
         }
 
-        .addon-item span.name {
+        .addon-item span.name, .variant-item span.name {
             font-size: 0.9rem;
-            font-weight: 600;
-            margin-left: 8px;
+            margin-left: 5px;
         }
 
         .addon-item span.price {
@@ -95,15 +96,15 @@
             color: var(--primary-color);
         }
 
-        /* Sembunyikan Checkbox Asli agar lebih rapi */
-        .addon-checkbox {
+        /* Sembunyikan Input Asli */
+        .addon-checkbox, .variant-radio {
             appearance: none;
             -webkit-appearance: none;
             width: 18px;
             height: 18px;
             border: 2px solid #ccc;
             border-radius: 50%;
-            margin-right: 5px;
+            margin-right: 8px;
             position: relative;
             display: flex;
             align-items: center;
@@ -111,25 +112,81 @@
             transition: 0.2s;
         }
 
-        .addon-checkbox:checked {
+        /* Radio butuh border radius beda? Tidak, bulat juga bagus */
+        
+        .addon-checkbox:checked, .variant-radio:checked {
             background-color: var(--primary-color);
             border-color: var(--primary-color);
         }
 
-        /* Tanda Centang Putih */
+        /* Tanda Centang / Dot */
         .addon-checkbox:checked::after {
             content: '✔';
             font-size: 10px;
             color: white;
             position: absolute;
         }
+        .variant-radio:checked::after {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+        }
+
+        /* --- WAJIB PILIH ALERT --- */
+        .variant-error {
+            color: #d32f2f;
+            font-size: 0.85rem;
+            margin-top: 5px;
+            display: none;
+            font-weight: 600;
+        }
 
         @media (min-width: 769px) {
-            .addon-item {
-                min-width: auto; /* Di desktop sesuaikan isi */
+            .addon-item, .variant-item {
+                min-width: auto; 
                 width: auto;
                 padding-right: 15px;
             }
+        }
+
+        /* --- ESTETIK TEXTAREA CATATAN --- */
+        .modal-notes-section {
+            margin-top: 25px;
+        }
+
+        .modal-notes-section label {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #555;
+            display: block;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .modal-notes-section textarea {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            background-color: #f8f9fa; 
+            border-radius: 12px; 
+            font-family: inherit;
+            font-size: 0.95rem;
+            color: #333;
+            transition: all 0.3s ease;
+            resize: none; 
+            min-height: 80px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .modal-notes-section textarea:focus {
+            background-color: #fff;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(177, 147, 91, 0.1); 
+            outline: none;
         }
 
         /* --- BACK TO TOP BUTTON --- */
@@ -190,55 +247,14 @@
             .qty-wrapper { display: flex; align-items: center; gap: 12px; }
             .qty-btn { width: 32px; height: 32px; border-radius: 50%; border: 1px solid #ddd; display: flex; align-items: center; justify-content: center; font-size: 1rem; color: var(--secondary-color); }
             .qty-val { font-weight: 800; font-size: 1.1rem; min-width: 20px; text-align: center; }
-            .btn-add-final { flex-grow: 1; background: var(--primary-color); color: white; border: none; border-radius: 12px; padding: 12px; font-weight: 700; font-size: 1rem; display: flex; justify-content: space-between; }
+            .btn-add-final { flex-grow: 1; background: var(--primary-color); color: white; border: none; border-radius: 12px; padding: 12px; font-weight: 700; font-size: 1rem; display: flex; justify-content: space-between; transition: all 0.3s; }
+            .btn-add-final:disabled { background: #ccc; cursor: not-allowed; opacity: 0.7; }
             .close-modal-btn { top: 15px; right: 15px; background: rgba(0,0,0,0.3); color: white; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); z-index: 10002; font-size: 1.2rem; position: absolute; border:none; }
             
             .quantity-control-desktop, .add-btn-desktop { display: none; }
             .btn-back-to-top { bottom: 85px; right: 20px; width: 45px; height: 45px; }
         }
         @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-    
-        /* --- ESTETIK TEXTAREA CATATAN --- */
-        .modal-notes-section {
-            margin-top: 25px;
-        }
-
-        .modal-notes-section label {
-            font-size: 0.9rem;
-            font-weight: 700;
-            color: #555;
-            display: block;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .modal-notes-section textarea {
-            width: 100%;
-            padding: 15px;
-            border: 1px solid #e0e0e0;
-            background-color: #f8f9fa; /* Abu-abu sangat muda */
-            border-radius: 12px; /* Lebih rounded */
-            font-family: inherit;
-            font-size: 0.95rem;
-            color: #333;
-            transition: all 0.3s ease;
-            resize: none; /* Matikan resize manual */
-            min-height: 80px;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
-        }
-
-        .modal-notes-section textarea:focus {
-            background-color: #fff;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 4px rgba(177, 147, 91, 0.1); /* Glow effect saat fokus */
-            outline: none;
-        }
-
-        .modal-notes-section textarea::placeholder {
-            color: #aaa;
-            font-style: italic;
-        }
     </style>
 @endsection
 
@@ -344,6 +360,24 @@
                     <span id="modal-price-value">Rp 0</span>
                 </div>
                 
+                {{-- AREA PILIHAN VARIAN (MANIS/ASIN) - KHUSUS BAKMIE --}}
+                <div id="variant-wrapper" style="display: none;">
+                    <div class="modal-variants">
+                        <h4>Pilih Rasa (Wajib) <span style="color:red">*</span></h4>
+                        <div class="variants-grid">
+                            <label class="variant-item">
+                                <input type="radio" name="noodle_flavor" class="variant-radio" value="Asin" onchange="checkVariant()">
+                                <span class="name">Asin</span>
+                            </label>
+                            <label class="variant-item">
+                                <input type="radio" name="noodle_flavor" class="variant-radio" value="Manis" onchange="checkVariant()">
+                                <span class="name">Manis</span>
+                            </label>
+                        </div>
+                        <div id="variant-error" class="variant-error">Silakan pilih rasa terlebih dahulu!</div>
+                    </div>
+                </div>
+
                 {{-- AREA TAMBAH TOPPING (CHIPS STYLE) --}}
                 <div id="addons-wrapper">
                     @if(isset($sideDishes) && count($sideDishes) > 0)
@@ -362,12 +396,13 @@
                     @endif
                 </div>
 
-{{-- Catatan (Estetik Baru) --}}
+                {{-- Catatan --}}
                 <div class="modal-notes-section">
                     <label for="item-notes">Catatan Khusus (Opsional)</label>
                     <textarea id="item-notes" rows="3" placeholder="Contoh: Jangan pakai daun bawang, sambal dipisah..."></textarea>
                 </div>
 
+                {{-- Desktop Qty --}}
                 <div class="quantity-control quantity-control-desktop" style="margin-top: 20px;">
                     <button type="button" onclick="updateQty(-1)">-</button>
                     <input type="number" id="qty-input-desktop" value="1" min="1" readonly style="width: 50px; text-align: center;">
@@ -376,22 +411,23 @@
             </div>
         </div>
 
-        <button class="add-to-cart-btn-modal add-btn-desktop" onclick="addToCart()" style="margin: 20px;">Tambah ke Keranjang</button>
+        {{-- Desktop Button --}}
+        <button id="add-btn-desktop" class="add-to-cart-btn-modal add-btn-desktop" onclick="addToCart()" style="margin: 20px;">Tambah ke Keranjang</button>
 
+        {{-- Mobile Sticky Bottom Bar --}}
         <div class="modal-bottom-bar-mobile">
             <div class="qty-wrapper">
                 <div class="qty-btn" onclick="updateQty(-1)"><i class="fas fa-minus"></i></div>
                 <div class="qty-val" id="qty-val-display">1</div>
                 <div class="qty-btn" onclick="updateQty(1)"><i class="fas fa-plus"></i></div>
             </div>
-            <button class="btn-add-final" onclick="addToCart()">
+            <button id="add-btn-mobile" class="btn-add-final" onclick="addToCart()">
                 <span>Tambah Pesanan</span>
                 <span id="btn-total-price">Rp 0</span>
             </button>
         </div>
     </div>
 </div>
-
 
 <input type="hidden" id="real-qty-input" value="1">
 
@@ -401,11 +437,13 @@
     let currentMenuItem = {};
     let globalCartQty = {{ $currentQty ?? 0 }}; 
     let globalCartTotal = {{ $currentTotal ?? 0 }}; 
+    let isVariantRequired = false;
 
     document.addEventListener("DOMContentLoaded", function() {
         updateStickyCartUI(globalCartQty, globalCartTotal);
     });
 
+    // --- SCROLL & BACK TO TOP ---
     const sections = document.querySelectorAll('.menu-section');
     const navLinks = document.querySelectorAll('.cat-pill');
     const navContainer = document.getElementById('categoryNav');
@@ -433,6 +471,7 @@
 
     backToTopBtn.addEventListener('click', () => { window.scrollTo({ top: 0, behavior: 'smooth' }); });
 
+    // --- OPEN MODAL ---
     function openModal(card) {
         document.getElementById('stickyCart').classList.remove('show'); 
         
@@ -450,9 +489,11 @@
         document.getElementById('modal-title').innerText = currentMenuItem.name;
         document.getElementById('modal-description').innerText = currentMenuItem.description;
         
-        // Logic Hide Addons
         const cat = currentMenuItem.category.toLowerCase().trim();
         const addonsWrapper = document.getElementById('addons-wrapper');
+        const variantWrapper = document.getElementById('variant-wrapper');
+        
+        // 1. Logic Hide Addons (Sama seperti sebelumnya)
         const excludedCategories = ['minuman', 'drink', 'beverage', 'tambahan', 'side dish', 'topping'];
         const isExcluded = excludedCategories.some(keyword => cat.includes(keyword));
         
@@ -462,12 +503,64 @@
             addonsWrapper.style.display = 'block';
         }
 
+        // 2. Logic Variant Wajib (Bakmie/Mie)
+        // Reset Radio Button
+        const radios = document.querySelectorAll('input[name="noodle_flavor"]');
+        radios.forEach(r => r.checked = false);
+        document.getElementById('variant-error').style.display = 'none';
+
+        // Cek apakah ini Bakmie?
+        if (cat.includes('mie') || cat.includes('bakmie')) {
+            variantWrapper.style.display = 'block';
+            isVariantRequired = true;
+            toggleAddButton(false); // Matikan tombol dulu
+        } else {
+            variantWrapper.style.display = 'none';
+            isVariantRequired = false;
+            toggleAddButton(true); // Hidupkan tombol
+        }
+
         setQty(1);
         document.getElementById('item-notes').value = '';
         document.querySelectorAll('.addon-checkbox').forEach(cb => cb.checked = false);
 
         updateTotalPrice();
         modal.style.display = 'flex';
+    }
+
+    function checkVariant() {
+        if (isVariantRequired) {
+            const selected = document.querySelector('input[name="noodle_flavor"]:checked');
+            if (selected) {
+                document.getElementById('variant-error').style.display = 'none';
+                toggleAddButton(true);
+            } else {
+                toggleAddButton(false);
+            }
+        }
+    }
+
+    function toggleAddButton(enable) {
+        const btnDesktop = document.getElementById('add-btn-desktop');
+        const btnMobile = document.getElementById('add-btn-mobile');
+        
+        if (enable) {
+            btnDesktop.disabled = false;
+            btnDesktop.style.opacity = '1';
+            btnDesktop.style.cursor = 'pointer';
+            
+            btnMobile.disabled = false;
+            btnMobile.style.opacity = '1';
+            btnMobile.style.cursor = 'pointer';
+        } else {
+            btnDesktop.disabled = true;
+            btnDesktop.style.opacity = '0.5';
+            btnDesktop.style.cursor = 'not-allowed';
+            
+            btnMobile.disabled = true;
+            btnMobile.style.opacity = '0.5';
+            btnMobile.style.cursor = 'not-allowed';
+        }
     }
 
     function closeModal() {
@@ -519,11 +612,21 @@
     }
 
     function addToCart() {
+        // Cek validasi akhir
+        if (isVariantRequired) {
+            const selectedVariant = document.querySelector('input[name="noodle_flavor"]:checked');
+            if (!selectedVariant) {
+                document.getElementById('variant-error').style.display = 'block';
+                return; // Stop process
+            }
+        }
+
         const quantity = parseInt(document.getElementById('real-qty-input').value);
-        const notes = document.getElementById('item-notes').value;
+        let notes = document.getElementById('item-notes').value;
         let selectedAddons = [];
         let addonsPrice = 0;
         
+        // Ambil Addons
         const addonsWrapper = document.getElementById('addons-wrapper');
         if (addonsWrapper.style.display !== 'none') {
             document.querySelectorAll('.addon-checkbox:checked').forEach((cb) => {
@@ -531,10 +634,16 @@
                 addonsPrice += parseInt(cb.dataset.price);
             });
         }
+
+        // Ambil Varian Rasa (Gabungkan ke Notes agar simple)
+        if (isVariantRequired) {
+            const flavor = document.querySelector('input[name="noodle_flavor"]:checked').value;
+            notes = `[Rasa: ${flavor}] ` + notes;
+        }
         
         let itemTotal = (currentMenuItem.price + addonsPrice) * quantity;
         
-        const btn = document.querySelector('.btn-add-final');
+        const btn = document.getElementById('add-btn-mobile');
         const originalHtml = btn.innerHTML;
         btn.innerHTML = '<span>Menyimpan...</span>'; 
         btn.disabled = true;

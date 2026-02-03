@@ -3,12 +3,12 @@
 @section('title', 'Manajemen Pesanan')
 
 @section('styles')
-    {{-- Pertahankan CSS asli Anda --}}
+    {{-- CSS Khusus Halaman Order --}}
     <link rel="stylesheet" href="{{ asset('assets/css/admin_orders.css') }}">
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
     
     <style>
-        /* CSS POPUP DETAIL (MODAL) - Sesuai kode awal Anda */
+        /* CSS POPUP DETAIL (MODAL) */
         .modal {
             display: none; 
             position: fixed; z-index: 9999; left: 0; top: 0;
@@ -53,6 +53,11 @@
             padding: 15px 20px; background-color: #f8f9fa; text-align: right; border-top: 1px solid #eee;
         }
         .loading-spinner { text-align: center; padding: 30px; color: #666; }
+
+        /* BADGE STATUS PEMBAYARAN (BARU) */
+        .badge-payment { font-size: 0.75rem; padding: 3px 8px; border-radius: 4px; font-weight: bold; display: inline-block; margin-top: 5px; }
+        .badge-payment.paid { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .badge-payment.unpaid { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
     </style>
 @endsection
 
@@ -82,7 +87,7 @@
         <div class="table-responsive">
             <table class="table-custom">
                 <thead>
-                    <tr><th>ID</th> <th>Pelanggan</th> <th>Lokasi</th> <th>Total</th> <th>Status</th> <th>Waktu</th> <th class="text-right">Aksi</th></tr>
+                    <tr><th>ID</th> <th>Pelanggan</th> <th>Lokasi</th> <th>Total & Bayar</th> <th>Status Pesanan</th> <th>Waktu</th> <th class="text-right">Aksi</th></tr>
                 </thead>
                 <tbody>
                     @forelse ($orders as $order)
@@ -91,9 +96,20 @@
                             <td><span class="order-id">#{{ $order->id }}</span></td>
                             <td><strong>{{ $order->customer_name }}</strong><br><small class="text-muted">{{ $order->customer_phone }}</small></td>
                             <td><strong>{{ Str::before($order->shipping_address, '-') }}</strong><br><small>{{ Str::after($order->shipping_address, '-') }}</small></td>
-                            <td><div class="price-text">Rp {{ number_format($order->total_price, 0, ',', '.') }}</div><span class="payment-method">{{ strtoupper($order->payment_method) }}</span></td>
+                            
+                            {{-- KOLOM TOTAL & STATUS BAYAR (DIUPDATE) --}}
                             <td>
-                                {{-- FIX: Tambahkan 'process' dan 'paid' ke kondisi status BARU --}}
+                                <div class="price-text">Rp {{ number_format($order->total_price, 0, ',', '.') }}</div>
+                                <span class="payment-method" style="margin-right: 5px;">{{ strtoupper($order->payment_method) }}</span>
+                                
+                                @if($order->payment_status == 'paid')
+                                    <span class="badge-payment paid"><i class="fas fa-check-circle"></i> LUNAS</span>
+                                @else
+                                    <span class="badge-payment unpaid"><i class="fas fa-times-circle"></i> BELUM BAYAR</span>
+                                @endif
+                            </td>
+
+                            <td>
                                 @if(in_array($order->status, ['new', 'pending', 'process', 'paid'])) 
                                     <span class="status-new">BARU!</span>
                                 @else 
@@ -103,7 +119,7 @@
                             <td>{{ $order->created_at->format('H:i') }}</td>
                             <td class="text-right">
                                 <div class="action-buttons">
-                                    {{-- FIX LOGIC TOMBOL: Tambahkan 'process' & 'paid' agar tombol muncul untuk pesanan lunas --}}
+                                    {{-- FIX LOGIC TOMBOL --}}
                                     @if(in_array($order->status, ['new', 'pending', 'process', 'paid']))
                                         <form action="{{ route('admin.orders.updateStatus', $order->id) }}" method="POST" class="form-update-status">
                                             @csrf @method('PATCH')
@@ -143,7 +159,7 @@
     </div>
 </div>
 
-{{-- MODAL POPUP --}}
+{{-- MODAL POPUP (SAMA PERSIS, TIDAK PERLU DIUBAH) --}}
 <div id="orderDetailModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -156,14 +172,17 @@
                 <div style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px dashed #ccc;">
                     <div style="font-weight: bold; font-size: 1.1em;" id="modalCustName"></div>
                     <div style="color: #666;" id="modalCustPhone"></div>
-                    <div style="margin-top: 5px;"><span style="background: #e3f2fd; padding: 2px 8px; border-radius: 4px; font-size: 0.9em; color: #1565c0;" id="modalTable"></span></div>
+                    <div style="margin-top: 5px;">
+                        <span style="background: #e3f2fd; padding: 2px 8px; border-radius: 4px; font-size: 0.9em; color: #1565c0;" id="modalTable"></span>
+                        {{-- STATUS BAYAR DI MODAL JUGA --}}
+                        <span id="modalPaymentStatusBadge" class="badge-payment" style="margin-left: 10px;"></span>
+                    </div>
                 </div>
                 
                 <h5 style="margin: 0 0 10px 0; font-size: 0.9em; color: #888;">RINCIAN MENU</h5>
                 <table class="detail-table"><tbody id="modalItemsList"></tbody></table>
                 
                 <div style="background: #f9f9f9; padding: 15px; margin-top: 15px; border-radius: 8px;">
-                    {{-- [BARU] Rincian Harga Lengkap --}}
                     <div style="display: flex; justify-content: space-between; font-size: 0.9em; color: #666;">
                         <span>Subtotal</span><span id="modalSubtotal"></span>
                     </div>
@@ -210,11 +229,24 @@
                     document.getElementById("modalNote").innerText = order.order_notes || '-';
                     document.getElementById("modalPrintLink").href = `/pesanan/${order.id}`;
                     
+                    // UPDATE STATUS BAYAR DI MODAL
+                    const badge = document.getElementById("modalPaymentStatusBadge");
+                    if(order.payment_status === 'paid') {
+                        badge.className = 'badge-payment paid';
+                        badge.innerHTML = '<i class="fas fa-check-circle"></i> LUNAS';
+                    } else {
+                        badge.className = 'badge-payment unpaid';
+                        badge.innerHTML = '<i class="fas fa-times-circle"></i> BELUM BAYAR';
+                    }
+
                     let itemsHtml = '';
                     let calculatedSubtotal = 0;
 
                     data.items.forEach(item => {
-                        let sub = parseFloat(item.subtotal);
+                        // Pastikan harga diparsing sebagai angka
+                        let price = parseInt(item.price.replace(/\./g, ''));
+                        let sub = price * item.quantity;
+                        
                         calculatedSubtotal += sub;
                         itemsHtml += `
                             <tr>
@@ -228,13 +260,16 @@
                     });
                     document.getElementById("modalItemsList").innerHTML = itemsHtml;
 
-                    // Hitung Biaya Layanan
-                    let serviceFee = order.total_price - calculatedSubtotal;
+                    // Hitung Ulang Biaya Layanan dari Total di Database
+                    // (Karena di controller Anda mengirim total_price sudah format string, kita harus hati-hati)
+                    // Lebih aman pakai data mentah jika ada, tapi ini workaround:
+                    let totalStr = order.total_price.replace(/\./g, '');
+                    let totalInt = parseInt(totalStr);
+                    let serviceFee = totalInt - calculatedSubtotal;
 
-                    // Isi Rincian Harga
                     document.getElementById("modalSubtotal").innerText = 'Rp ' + new Intl.NumberFormat('id-ID').format(calculatedSubtotal);
                     document.getElementById("modalFee").innerText = 'Rp ' + new Intl.NumberFormat('id-ID').format(serviceFee);
-                    document.getElementById("modalTotal").innerText = 'Rp ' + new Intl.NumberFormat('id-ID').format(order.total_price);
+                    document.getElementById("modalTotal").innerText = 'Rp ' + order.total_price;
                     
                     document.getElementById("modalLoading").style.display = "none";
                     document.getElementById("modalContent").style.display = "block";
