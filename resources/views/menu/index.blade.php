@@ -5,29 +5,163 @@
 @section('styles')
     <link rel="stylesheet" href="{{ asset('assets/css/menu.css') }}">
     <style>
-        /* ... (Keep your existing CSS unchanged) ... */
-        :root { --primary-color: #B1935B; --secondary-color: #2F3D65; --app-bg: #f8f9fa; --nav-bg: #ffffff; }
-        /* ... other css ... */
+        /* --- GLOBAL VARIABLES --- */
+        :root {
+            --primary-color: #B1935B;  
+            --secondary-color: #2F3D65; 
+            --app-bg: #f8f9fa; 
+            --nav-bg: #ffffff;
+        }
+
+        /* --- HAPUS FOOTER KHUSUS HALAMAN INI --- */
+        footer, .footer-section, .site-footer { 
+            display: none !important; 
+        }
+
+        /* Hide elements on Desktop */
         .btn-mobile-add, .sticky-cart-bar, .modal-bottom-bar-mobile, .mobile-category-nav, .mobile-table-banner, .mobile-header { display: none; }
-        .modal-addons { margin: 15px 0; padding: 15px; background: #f8f9fa; border-radius: 8px; border: 1px dashed #ced4da; }
-        .addons-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
-        .addon-item { display: flex; justify-content: space-between; padding: 5px; cursor: pointer; }
+
+        /* --- ESTETIK MODAL ADDONS (CHIPS STYLE) --- */
+        .modal-addons { 
+            margin: 20px 0; 
+            padding: 0; 
+            background: transparent; 
+            border: none; 
+        }
         
-        .btn-back-to-top { position: fixed; bottom: 30px; right: 30px; width: 50px; height: 50px; background-color: var(--secondary-color); color: white; border: none; border-radius: 50%; box-shadow: 0 4px 15px rgba(0,0,0,0.3); cursor: pointer; z-index: 890; opacity: 0; visibility: hidden; transform: translateY(20px); transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+        .modal-addons h4 {
+            font-size: 0.95rem; 
+            font-weight: 700; 
+            color: #555; 
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .addons-grid { 
+            display: flex; 
+            flex-wrap: wrap; /* Agar turun ke bawah jika penuh */
+            gap: 10px; 
+        }
+
+        /* Desain Item Topping (Seperti Tombol Pilihan) */
+        .addon-item { 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            padding: 8px 12px; 
+            background: #fff; 
+            border: 1px solid #e0e0e0; 
+            border-radius: 50px; /* Rounded pill shape */
+            cursor: pointer; 
+            transition: all 0.2s ease;
+            user-select: none;
+            flex-grow: 0; 
+            min-width: 48%; /* Di mobile jadi 2 kolom */
+        }
+
+        /* Saat di-hover */
+        .addon-item:hover {
+            border-color: var(--primary-color);
+            background: #fffbf0;
+        }
+
+        /* Saat dipilih (Checked) - Menggunakan :has selector modern */
+        .addon-item:has(input:checked) {
+            background-color: #fff8e1; /* Warna kuning soft */
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            box-shadow: 0 2px 5px rgba(177, 147, 91, 0.2);
+        }
+
+        .addon-item span.name {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .addon-item span.price {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #888;
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-left: auto;
+        }
+        
+        .addon-item:has(input:checked) span.price {
+            background: rgba(177, 147, 91, 0.2);
+            color: var(--primary-color);
+        }
+
+        /* Sembunyikan Checkbox Asli agar lebih rapi */
+        .addon-checkbox {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid #ccc;
+            border-radius: 50%;
+            margin-right: 5px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+        }
+
+        .addon-checkbox:checked {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        /* Tanda Centang Putih */
+        .addon-checkbox:checked::after {
+            content: '✔';
+            font-size: 10px;
+            color: white;
+            position: absolute;
+        }
+
+        @media (min-width: 769px) {
+            .addon-item {
+                min-width: auto; /* Di desktop sesuaikan isi */
+                width: auto;
+                padding-right: 15px;
+            }
+        }
+
+        /* --- BACK TO TOP BUTTON --- */
+        .btn-back-to-top {
+            position: fixed; bottom: 30px; right: 30px; width: 50px; height: 50px;
+            background-color: var(--secondary-color); color: white; border: none; border-radius: 50%;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3); cursor: pointer; z-index: 890;
+            opacity: 0; visibility: hidden; transform: translateY(20px); transition: all 0.3s ease;
+            display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+        }
         .btn-back-to-top:hover { background-color: var(--primary-color); transform: translateY(-3px); }
         .btn-back-to-top.show { opacity: 1; visibility: visible; transform: translateY(0); }
 
+        /* --- TAMPILAN MOBILE --- */
         @media (max-width: 768px) {
             body { background-color: var(--app-bg); padding-bottom: 100px; padding-top: 0; }
             .menu-hero { display: none; } 
+            
+            /* Header & Nav */
             .mobile-header { display: block; background: white; padding: 15px 20px; position: sticky; top: 0; z-index: 1000; box-shadow: 0 1px 5px rgba(0,0,0,0.05); }
             .brand-title { font-size: 1.4rem; font-weight: 800; color: var(--secondary-color); margin: 0; }
             .brand-subtitle { font-size: 0.8rem; color: #666; margin: 0;}
+            
             .mobile-table-banner { display: flex; justify-content: space-between; align-items: center; background: #fff8e1; color: #f57f17; padding: 10px 20px; border-bottom: 1px solid #ffe0b2; font-size: 0.9rem; font-weight: 700; }
+            
             .mobile-category-nav { display: flex; overflow-x: auto; white-space: nowrap; background: white; padding: 10px 15px; position: sticky; top: 73px; z-index: 990; border-bottom: 1px solid #eee; gap: 10px; -ms-overflow-style: none; scrollbar-width: none; }
             .mobile-category-nav::-webkit-scrollbar { display: none; }
+            
             .cat-pill { display: inline-block; padding: 8px 16px; border-radius: 20px; background: #f1f3f5; color: #555; font-size: 0.85rem; font-weight: 600; text-decoration: none; transition: 0.2s; border: 1px solid transparent; }
             .cat-pill.active { background: var(--primary-color); color: white; box-shadow: 0 2px 8px rgba(177, 147, 91, 0.4); }
+
+            /* Cards */
             .menu-container { padding-top: 15px; }
             .menu-section { scroll-margin-top: 140px; }
             .menu-section h2 { font-size: 1.1rem; font-weight: 800; color: #333; margin: 0 0 15px 10px; border-left: 4px solid var(--primary-color); padding-left: 8px; }
@@ -40,9 +174,13 @@
             .card-content .price { font-size: 0.95rem; font-weight: 800; color: #444; margin-bottom: 8px; display: block; }
             .btn-mobile-add { width: 100%; padding: 6px 0; background: white; color: var(--primary-color); border: 1px solid var(--primary-color); border-radius: 50px; font-size: 0.8rem; font-weight: 700; text-align: center; cursor: pointer; }
             .btn-mobile-add:active { background: var(--primary-color); color: white; }
+
+            /* Sticky Cart */
             .sticky-cart-bar { display: none; position: fixed; bottom: 15px; left: 15px; right: 15px; background: var(--secondary-color); color: white; padding: 12px 15px; border-radius: 12px; box-shadow: 0 8px 20px rgba(47, 61, 101, 0.4); z-index: 900; align-items: center; justify-content: space-between; animation: slideUp 0.3s; }
             .sticky-cart-bar.show { display: flex; }
             .cart-badge { background: var(--primary-color); color: white; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold; position: absolute; top: -8px; right: -8px; border: 2px solid var(--secondary-color);}
+
+            /* Modal */
             .modal { align-items: flex-end; z-index: 9999 !important; }
             .modal-content { width: 100%; height: 100%; border-radius: 0; position: fixed; top: 0; left: 0; background: white; display: flex; flex-direction: column; z-index: 10000; }
             .modal-body { overflow-y: auto; padding-bottom: 120px; flex-grow: 1; display: block; }
@@ -54,16 +192,59 @@
             .qty-val { font-weight: 800; font-size: 1.1rem; min-width: 20px; text-align: center; }
             .btn-add-final { flex-grow: 1; background: var(--primary-color); color: white; border: none; border-radius: 12px; padding: 12px; font-weight: 700; font-size: 1rem; display: flex; justify-content: space-between; }
             .close-modal-btn { top: 15px; right: 15px; background: rgba(0,0,0,0.3); color: white; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); z-index: 10002; font-size: 1.2rem; position: absolute; border:none; }
+            
             .quantity-control-desktop, .add-btn-desktop { display: none; }
             .btn-back-to-top { bottom: 85px; right: 20px; width: 45px; height: 45px; }
         }
         @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    
+        /* --- ESTETIK TEXTAREA CATATAN --- */
+        .modal-notes-section {
+            margin-top: 25px;
+        }
+
+        .modal-notes-section label {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #555;
+            display: block;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .modal-notes-section textarea {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            background-color: #f8f9fa; /* Abu-abu sangat muda */
+            border-radius: 12px; /* Lebih rounded */
+            font-family: inherit;
+            font-size: 0.95rem;
+            color: #333;
+            transition: all 0.3s ease;
+            resize: none; /* Matikan resize manual */
+            min-height: 80px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .modal-notes-section textarea:focus {
+            background-color: #fff;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(177, 147, 91, 0.1); /* Glow effect saat fokus */
+            outline: none;
+        }
+
+        .modal-notes-section textarea::placeholder {
+            color: #aaa;
+            font-style: italic;
+        }
     </style>
 @endsection
 
 @section('content')
 
-{{-- Mobile Header & Banner --}}
+{{-- 1. Mobile Header & Table Info --}}
 <div class="mobile-header d-md-none">
     <h1 class="brand-title">Bakso Gala</h1>
     <p class="brand-subtitle">Nikmati bakso & mie terbaik.</p>
@@ -81,7 +262,7 @@
 </div>
 @endif
 
-{{-- Category Nav --}}
+{{-- 2. Category Navigation --}}
 <div class="mobile-category-nav d-md-none" id="categoryNav">
     @foreach ($menuGrouped as $category => $items)
         <a href="#{{ Str::slug($category) }}" class="cat-pill">{{ $category }}</a>
@@ -95,14 +276,14 @@
     </div>
 </header>
 
-{{-- Menu Grid --}}
+{{-- 3. Menu List --}}
 <div class="container menu-container">
     @foreach ($menuGrouped as $category => $items)
         <section class="menu-section" id="{{ Str::slug($category) }}">
             <h2>{{ $category }}</h2>
             <div class="menu-cards-grid">
                 @foreach ($items as $item)
-                    {{-- Tambahkan data-category agar JS bisa membedakan --}}
+                    {{-- Tambahkan data-category --}}
                     <div class="menu-card"
                          onclick="openModal(this)"
                          data-id="{{ $item->id }}"
@@ -113,6 +294,7 @@
                          data-category="{{ $category }}"> 
                         
                         <div class="card-image-placeholder" style="background-image: url('{{ asset($item->image_url) }}');"></div>
+                        
                         <div class="card-content">
                             <h3>{{ $item->name }} @if($item->is_favorite) <i class="fas fa-thumbs-up" style="color: #ffc107; font-size: 0.8em;"></i> @endif</h3>
                             <p>{{ Str::limit($item->description, 60) }}</p>
@@ -126,7 +308,7 @@
     @endforeach
 </div>
 
-{{-- Sticky Cart & BackToTop --}}
+{{-- 4. Sticky Cart Bar --}}
 <div id="stickyCart" class="sticky-cart-bar" onclick="window.location.href='{{ route('cart.index') }}'">
     <div style="display: flex; align-items: center; gap: 10px;">
         <div style="position: relative;">
@@ -145,7 +327,7 @@
 
 <button id="backToTop" class="btn-back-to-top" title="Kembali ke atas"><i class="fas fa-arrow-up"></i></button>
 
-{{-- MODAL DETAIL --}}
+{{-- 6. Modal Detail (ESTETIK BARU) --}}
 <div class="modal" id="menuDetailModal">
     <div class="modal-content">
         <button class="close-modal-btn" onclick="closeModal()">&times;</button>
@@ -162,19 +344,17 @@
                     <span id="modal-price-value">Rp 0</span>
                 </div>
                 
-                {{-- AREA TAMBAH TOPPING --}}
+                {{-- AREA TAMBAH TOPPING (CHIPS STYLE) --}}
                 <div id="addons-wrapper">
                     @if(isset($sideDishes) && count($sideDishes) > 0)
                     <div class="modal-addons">
-                        <h4 style="font-size: 1rem; margin-bottom: 10px;">Tambah Topping (Side Dish):</h4>
+                        <h4>Pilih Tambahan (Opsional)</h4>
                         <div class="addons-grid">
                             @foreach($sideDishes as $addon)
                             <label class="addon-item">
-                                <div style="display:flex; align-items:center;">
-                                    <input type="checkbox" class="addon-checkbox" value="{{ $addon->id }}" data-price="{{ $addon->price }}" onchange="updateTotalPrice()" style="margin-right:10px; width:18px; height:18px; accent-color: var(--primary-color);">
-                                    <span>{{ $addon->name }}</span>
-                                </div>
-                                <span style="font-weight:bold; color:#666; font-size:0.85em;">+{{ number_format($addon->price / 1000, 0) }}k</span>
+                                <input type="checkbox" class="addon-checkbox" value="{{ $addon->id }}" data-price="{{ $addon->price }}" onchange="updateTotalPrice()">
+                                <span class="name">{{ $addon->name }}</span>
+                                <span class="price">+{{ number_format($addon->price / 1000, 0) }}k</span>
                             </label>
                             @endforeach
                         </div>
@@ -182,9 +362,10 @@
                     @endif
                 </div>
 
-                <div style="margin-top: 20px;">
-                    <label style="font-weight: 700; display: block; margin-bottom: 8px; color: #333;">Catatan (Opsional)</label>
-                    <textarea id="item-notes" placeholder="Cth: Jangan pakai bawang goreng..." style="width: 100%; padding: 12px; border: 1px solid #eee; background: #f9f9f9; border-radius: 8px;"></textarea>
+{{-- Catatan (Estetik Baru) --}}
+                <div class="modal-notes-section">
+                    <label for="item-notes">Catatan Khusus (Opsional)</label>
+                    <textarea id="item-notes" rows="3" placeholder="Contoh: Jangan pakai daun bawang, sambal dipisah..."></textarea>
                 </div>
 
                 <div class="quantity-control quantity-control-desktop" style="margin-top: 20px;">
@@ -210,6 +391,7 @@
         </div>
     </div>
 </div>
+
 
 <input type="hidden" id="real-qty-input" value="1">
 
@@ -251,7 +433,6 @@
 
     backToTopBtn.addEventListener('click', () => { window.scrollTo({ top: 0, behavior: 'smooth' }); });
 
-    // --- MODAL & LOGIC HIDE ADDONS ---
     function openModal(card) {
         document.getElementById('stickyCart').classList.remove('show'); 
         
@@ -269,14 +450,10 @@
         document.getElementById('modal-title').innerText = currentMenuItem.name;
         document.getElementById('modal-description').innerText = currentMenuItem.description;
         
-        // LOGIC PENENTU: Sembunyikan untuk Minuman & Side Dish itu sendiri
+        // Logic Hide Addons
         const cat = currentMenuItem.category.toLowerCase().trim();
         const addonsWrapper = document.getElementById('addons-wrapper');
-        
-        // Daftar kata kunci kategori yang TIDAK boleh punya topping
         const excludedCategories = ['minuman', 'drink', 'beverage', 'tambahan', 'side dish', 'topping'];
-
-        // Cek apakah kategori saat ini ada di daftar exclude
         const isExcluded = excludedCategories.some(keyword => cat.includes(keyword));
         
         if (isExcluded) {
