@@ -37,18 +37,15 @@ class OrderController extends Controller
     // 3. PROSES SIMPAN REVIEW + AI AUTOMATION
     public function storeReview(Request $request, $id)
     {
-        // Validasi
         $request->validate([
             'rating' => 'required|integer|min:1|max:5',
             'comment' => 'nullable|string|max:500',
-            'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:5120', // Max 5MB
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
         ]);
 
         $order = Order::findOrFail($id);
-
         if ($order->user_id != Auth::id()) abort(403);
         
-        // Cek Status: Boleh review jika Lunas ATAU Status Maju (Process/Ready/Completed)
         $isReviewable = ($order->payment_status == 'paid') || 
                         in_array($order->status, ['process', 'preparing', 'ready', 'completed']);
 
@@ -58,17 +55,21 @@ class OrderController extends Controller
 
         if (Review::where('order_id', $order->id)->exists()) return back()->with('error', 'Sudah direview.');
 
-        // Handle Foto
-        $photoPath = null;
+        // --- PERBAIKAN PENYIMPANAN FOTO (SOLUSI HOSTINGER) ---
+        $photoDbPath = null;
         $base64Image = null;
         $mimeType = null;
 
         if ($request->hasFile('photo')) {
             $file = $request->file('photo');
-            $photoPath = $file->store('reviews', 'public');
+            $fileName = time() . '_' . $file->getClientOriginalName();
+            
+            // Simpan langsung ke folder public/uploads/reviews
+            $file->move(public_path('uploads/reviews'), $fileName);
+            $photoDbPath = 'uploads/reviews/' . $fileName; 
             
             // Persiapan Base64 untuk AI
-            $imageData = file_get_contents($file->getRealPath());
+            $imageData = file_get_contents(public_path($photoDbPath));
             $base64Image = base64_encode($imageData);
             $mimeType = $file->getMimeType();
         }
@@ -78,14 +79,13 @@ class OrderController extends Controller
             'order_id' => $order->id,
             'rating' => $request->rating,
             'comment' => $request->comment,
-            'photo' => $photoPath,
+            'photo' => $photoDbPath, // Path ke public/uploads/...
             'is_featured' => false 
         ]);
 
-        // PANGGIL AI (gemini-2.5-flash)
+        // PANGGIL AI
         $aiResult = $this->analyzeReviewWithAI($review, $base64Image, $mimeType);
 
-        // Feedback ke User
         if ($aiResult === true) {
             return back()->with('success', 'Selamat! Ulasan Anda lolos kurasi AI dan TAMPIL DI BERANDA! 🎉');
         } else {
@@ -93,19 +93,18 @@ class OrderController extends Controller
         }
     }
 
-    // 4. OTAK AI (UPDATE: MENGGUNAKAN gemini-2.5-flash)
+    // 4. OTAK AI
     private function analyzeReviewWithAI($review, $base64Image = null, $mimeType = null)
     {
         $apiKey = env('GEMINI_API_KEY');
         if (!$apiKey) return false;
 
-        // INSTRUKSI: FOTO SELFIE/MAKANAN BOLEH
         $promptText = "Anda adalah Admin Media Sosial. Analisis ulasan ini.\n" .
             "KRITERIA LOLOS (featured: true):\n" .
             "- Rating minimal 4.\n" .
             "- Komentar positif.\n" .
-            "- FOTO: Makanan/Minuman SANGAT BOLEH. Selfie/Orang SANGAT BOLEH (asal sopan). Suasana Resto BOLEH.\n" .
-            "- TOLAK (featured: false) HANYA JIKA: Foto tidak senonoh, porno, atau tidak pantas.\n" .
+            "- FOTO: Makanan/Minuman/Selfie sopan BOLEH.\n" .
+            "- TOLAK HANYA JIKA: Foto tidak senonoh atau tidak pantas.\n" .
             "Output JSON MURNI: { \"featured\": true/false, \"reason\": \"...\" }\n" .
             "Data: Rating {$review->rating}, Komentar: '{$review->comment}'";
 
@@ -120,10 +119,9 @@ class OrderController extends Controller
         }
 
         try {
-            // TETAP GUNAKAN MODEL 2.5
             $response = Http::withoutVerifying()
                 ->withHeaders(['Content-Type' => 'application/json'])
-                ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$apiKey}", [
+                ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={$apiKey}", [
                     'contents' => [['parts' => $parts]]
                 ]);
 
@@ -134,25 +132,20 @@ class OrderController extends Controller
                 $result = json_decode($jsonStr, true);
 
                 if ($result) {
-                    // Update Database Langsung
-                    DB::table('reviews')->where('id', $review->id)->update([
+                    $review->update([
                         'is_featured' => ($result['featured'] == true) ? 1 : 0,
                         'ai_analysis' => $result['reason'] ?? 'Analyzed'
                     ]);
-                    
                     return ($result['featured'] == true);
                 }
-            } else {
-                Log::error("Gemini Error: " . $response->body());
             }
         } catch (\Exception $e) {
             Log::error("Gemini Exception: " . $e->getMessage());
         }
-
         return false;
     }
 
-    // 5. Fitur Polish Review (UPDATE: HASIL SANTAI/NATURAL)
+    // 5. Fitur Polish Review
     public function polishReview(Request $request)
     {
         $request->validate(['text' => 'required|string|max:500']);
@@ -160,27 +153,20 @@ class OrderController extends Controller
         if (!$apiKey) return response()->json(['status' => 'error', 'message' => 'API Key Missing'], 500);
 
         try {
-            // INSTRUKSI BARU: PERTAHANKAN GAYA BAHASA ASLI (JANGAN BAKU)
             $prompt = "Perbaiki ulasan ini agar lebih asik dan menarik, tapi JANGAN terlalu baku/kaku. Pertahankan gaya bahasa santai/gaul pelanggan. Langsung berikan satu hasil terbaik saja tanpa tanda petik. Teks asli: '{$request->text}'";
             
             $response = Http::withoutVerifying()
                 ->withHeaders(['Content-Type' => 'application/json'])
-                ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$apiKey}", [
+                ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={$apiKey}", [
                     'contents' => [['parts' => [['text' => $prompt]]]]
                 ]);
 
             if ($response->successful()) {
                 $data = $response->json();
                 $text = $data['candidates'][0]['content']['parts'][0]['text'] ?? $request->text;
-                
-                // Bersihkan jika ada tanda kutip di awal/akhir
                 $cleanText = trim($text, "\"' ");
-                
                 return response()->json(['status' => 'success', 'text' => $cleanText]);
             }
-            
-            return response()->json(['status' => 'error', 'message' => 'Google Error: ' . $response->body()], 500);
-
         } catch (\Exception $e) {
             return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
         }

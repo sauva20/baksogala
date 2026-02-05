@@ -155,16 +155,17 @@
                     @foreach($reviews as $review)
                         <div class="testimonial-card">
                             {{-- Foto Customer (BESAR & JELAS) --}}
-                            <div class="customer-photo">
-                                @if($review->photo)
-                                    <img src="{{ asset('storage/' . $review->photo) }}" alt="Foto Review">
-                                @else
-                                    <div style="width:100%; height:100%; background:#f0f0f0; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#ccc;">
-                                        <i class="fas fa-image" style="font-size: 3rem; margin-bottom:10px;"></i>
-                                        <span style="font-size:0.8rem;">Tidak ada foto</span>
-                                    </div>
-                                @endif
-                            </div>
+<div class="customer-photo">
+    @if($review->photo)
+        {{-- Langsung memanggil path yang disimpan di DB --}}
+        <img src="{{ asset($review->photo) }}" alt="Foto Review">
+    @else
+        <div style="width:100%; height:100%; background:#f0f0f0; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#ccc;">
+            <i class="fas fa-image" style="font-size: 3rem; margin-bottom:10px;"></i>
+            <span style="font-size:0.8rem;">Tidak ada foto</span>
+        </div>
+    @endif
+</div>
 
                             {{-- Bintang Rating --}}
                             <div style="color: #ffc700; margin-bottom: 10px; font-size: 0.9rem;">
