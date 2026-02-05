@@ -6,9 +6,11 @@
     <title>Bakso Gala - Kelezatan Tiada Tara</title>
 
     {{-- Memanggil Aset --}}
-    <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/navbar.css') }}">
-    <link rel="icon" href="{{ asset('images/favicon.ico') }}" type="image/x-icon">
+{{-- Memanggil Aset --}}
+<link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
+<link rel="stylesheet" href="{{ asset('assets/css/navbar.css') }}">
+{{-- Sesuaikan path favicon jika ada di dalam assets/images --}}
+<link rel="icon" href="{{ asset('assets/images/favicon.ico') }}" type="image/x-icon">
 
     {{-- Link Eksternal --}}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -128,7 +130,8 @@
             <div class="menu-items-grid">
                 @forelse($menu_items as $item)
                     <div class="menu-item">
-                        <img src="{{ asset($item->image_url) }}" alt="{{ $item->name }}">
+                        {{-- Bagian Menu Preview --}}
+<img src="{{ asset($item->image_url) }}" alt="{{ $item->name }}">
                         <h3>{{ $item->name }}</h3>
                         <p>{{ Str::limit($item->description, 60) }}</p>
                         <span class="price">Rp {{ number_format($item->price, 0, ',', '.') }}</span>

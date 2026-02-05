@@ -733,21 +733,43 @@ footer { background: var(--bg-dark); color: #ccc; padding: 60px 0 20px; }
     p { font-size: 1rem; }
 
     /* 2. Hero Section Mobile */
+/* 2. Hero Section Mobile (SUDAH DIPERBAIKI: RATA TENGAH) */
     .hero-section {
-        min-height: 80vh;
-        padding: 100px 20px 40px;
-        align-items: flex-start; /* Rata kiri */
-        text-align: left;
-        background-position: center bottom;
+        min-height: 80vh; /* Tinggi layar hampir penuh */
+        padding: 120px 20px 60px; /* Padding atas besar biar ga ketabrak navbar */
+        
+        /* Flexbox untuk Center */
+        display: flex;
+        flex-direction: column;
+        justify-content: center; /* Tengah secara vertikal */
+        align-items: center;     /* Tengah secara horizontal */
+        text-align: center;      /* Teks rata tengah */
+        
+        background-position: center center; /* Fokus gambar di tengah */
     }
 
     .hero-section h1 {
-        font-size: 2.8rem;
-        line-height: 1.1;
+        font-size: 2.8rem; /* Ukuran font besar tapi pas di HP */
+        line-height: 1.2;
+        margin-bottom: 15px;
+        width: 100%; /* Memastikan lebar penuh */
     }
 
-    .hero-section p { font-size: 1.1rem; }
-    .btn-hero { width: 100%; text-align: center; }
+.hero-section p { 
+        font-size: 1.1rem;
+        margin-bottom: 30px;
+        max-width: 90%; /* Supaya teks tidak terlalu mepet pinggir */
+        margin-left: auto;
+        margin-right: auto;
+        color: rgba(255,255,255,0.95);
+    }
+    
+    .btn-hero { 
+        width: auto; /* Tombol menyesuaikan teks, jangan full width */
+        min-width: 200px; /* Tapi minimal segini biar enak ditekan */
+        text-align: center;
+        margin-top: 10px;
+    }
 
     /* 3. MENU SLIDER (SWIPE MODE - NETFLIX STYLE) */
     .menu-preview-section .container {
