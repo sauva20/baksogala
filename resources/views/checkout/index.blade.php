@@ -3,7 +3,7 @@
 @section('title', 'Checkout - Bakso Gala')
 
 @section('styles')
-<link rel="icon" href="{{ asset('assets/images/gala.png') }}" type="image/png">
+<link rel="icon" href="{{ asset('assets/images/GALA.png') }}" type="image/png">
 <style>
     :root {
         --primary: #B1935B;

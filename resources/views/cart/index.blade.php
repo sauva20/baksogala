@@ -3,7 +3,7 @@
 @section('title', 'Keranjang - Bakso Gala')
 
 @section('styles')
-<link rel="icon" href="{{ asset('assets/images/gala.png') }}" type="image/png">
+<link rel="icon" href="{{ asset('assets/images/GALA.png') }}" type="image/png">
     <style>
         /* --- GLOBAL COLORS --- */
         :root {
