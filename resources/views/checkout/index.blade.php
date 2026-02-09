@@ -11,13 +11,8 @@
     }
     body { background-color: var(--bg); padding-bottom: 40px; }
 
-    /* ==================================================== 
-       FIX: MENYEMBUNYIKAN FOOTER DI HALAMAN CHECKOUT
-       Agar tampilan fokus ke form pembayaran
-       ==================================================== */
-    footer {
-        display: none !important;
-    }
+    /* FIX: MENYEMBUNYIKAN FOOTER DI HALAMAN CHECKOUT */
+    footer { display: none !important; }
 
     .checkout-container { max-width: 600px; margin: 0 auto; padding: 20px; }
 
@@ -25,10 +20,8 @@
     .checkout-header h1 { font-size: 1.5rem; font-weight: 800; color: var(--navy); margin: 0; }
     .checkout-header p { color: #666; font-size: 0.9rem; }
 
-    /* Alert Box untuk Error */
-    .alert-box {
-        padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9rem;
-    }
+    /* Alert Box */
+    .alert-box { padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9rem; }
     .alert-error { background-color: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
 
     /* Card Style */
@@ -45,7 +38,11 @@
         border-radius: 8px; cursor: pointer; transition: 0.2s; background: white; color: #555;
     }
     .dining-tab input { display: none; }
-    .dining-tab.active { border-color: var(--primary); background: #fff8e1; color: var(--primary); font-weight: bold; }
+    
+    /* Logic CSS untuk Tab Aktif */
+    .dining-tab:has(input:checked) { 
+        border-color: var(--primary); background: #fff8e1; color: var(--primary); font-weight: bold; 
+    }
     .dining-tab i { font-size: 1.2rem; display: block; margin-bottom: 5px; }
 
     /* Payment Methods */
@@ -98,7 +95,6 @@
         <p>Lengkapi data untuk memproses pesanan</p>
     </div>
 
-    {{-- ERROR HANDLING: Agar tidak stuck tanpa pesan --}}
     @if(session('error'))
         <div class="alert-box alert-error">
             <strong>Gagal:</strong> {{ session('error') }}
@@ -126,17 +122,18 @@
     <form action="{{ route('checkout.store') }}" method="POST">
         @csrf
         
-        {{-- Kalkulasi Biaya Aplikasi (PHP) --}}
         @php
             $subtotal = $grandTotal;
-            $appFee = $subtotal * 0.007; // 0.7%
-            // PENTING: Midtrans menolak desimal, gunakan ceil()
+            $appFee = $subtotal * 0.007;
             $finalTotal = ceil($subtotal + $appFee); 
+            
+            // --- AMBIL DATA DARI SESSION (YANG DISIMPAN DI KERANJANG) ---
+            $sessDining = session('dining_option', 'dine_in'); // Default Dine In
+            $sessTable  = session('table_number');
+            $sessArea   = session('table_area');
         @endphp
 
-        {{-- Input Hidden --}}
         <input type="hidden" name="grand_total" value="{{ $finalTotal }}">
-        {{-- Paksa Payment Method jadi Midtrans --}}
         <input type="hidden" name="payment_method" value="midtrans">
 
         {{-- 1. DATA PEMESAN --}}
@@ -153,43 +150,47 @@
             </div>
         </div>
 
-        {{-- 2. TIPE PESANAN --}}
+        {{-- 2. TIPE PESANAN (OTOMATIS TERISI DARI KERANJANG) --}}
         <div class="co-card">
             <span class="co-title">Tipe Pesanan</span>
             <div class="dining-tabs">
-                <label class="dining-tab active" onclick="setDining('dine_in')">
-                    <input type="radio" name="dining_option" value="dine_in" checked>
+                <label class="dining-tab" onclick="setDining('dine_in')">
+                    {{-- Cek session untuk menentukan mana yang checked --}}
+                    <input type="radio" name="dining_option" value="dine_in" {{ $sessDining == 'dine_in' ? 'checked' : '' }}>
                     <i class="fas fa-chair"></i> Dine In
                 </label>
                 <label class="dining-tab" onclick="setDining('take_away')">
-                    <input type="radio" name="dining_option" value="take_away">
+                    <input type="radio" name="dining_option" value="take_away" {{ $sessDining == 'take_away' ? 'checked' : '' }}>
                     <i class="fas fa-shopping-bag"></i> Take Away
                 </label>
             </div>
 
-            <div id="dineInFields" style="display: block;">
+            <div id="dineInFields">
                 <div class="form-group">
                     <label class="form-label">Lokasi Duduk <span style="color:red">*</span></label>
-                    {{-- FIX: UPDATE DAFTAR LOKASI SESUAI REQUEST --}}
-<select name="dining_area" id="areaInput" class="form-input" required>
-    <option value="" disabled {{ $scannedArea ? '' : 'selected' }}>-- Pilih Lokasi --</option>
-    
-    <option value="Lantai 2 Gym" {{ $scannedArea == 'Lantai 2 Gym' ? 'selected' : '' }}>
-        Lantai 2 Gym
-    </option>
-    
-    <option value="Indoor More" {{ $scannedArea == 'Indoor More' ? 'selected' : '' }}>
-        Indoor More
-    </option>
-    
-    <option value="Depan Utama" {{ $scannedArea == 'Depan Utama' ? 'selected' : '' }}>
-        Depan Utama
-    </option>
-</select>
+                    
+                    {{-- DROPDOWN AREA (SESUAI PERMINTAAN) --}}
+                    <select name="dining_area" id="areaInput" class="form-input">
+                        <option value="" disabled {{ !$sessArea ? 'selected' : '' }}>-- Pilih Lokasi --</option>
+                        
+                        <option value="Lantai 2 Gym" {{ $sessArea == 'Lantai 2 Gym' ? 'selected' : '' }}>
+                            Lantai 2 Gym
+                        </option>
+                        
+                        <option value="Indoor More" {{ $sessArea == 'Indoor More' ? 'selected' : '' }}>
+                            Indoor More
+                        </option>
+                        
+                        <option value="Depan Utama" {{ $sessArea == 'Depan Utama' ? 'selected' : '' }}>
+                            Depan Utama
+                        </option>
+                    </select>
                 </div>
+
                 <div class="form-group">
                     <label class="form-label">Nomor Meja <span style="color:red">*</span></label>
-                    <input type="number" name="table_number" id="tableInput" class="form-input" value="{{ $scannedTable }}" {{ $scannedTable ? 'readonly' : '' }} required placeholder="Contoh: 12">
+                    {{-- Value otomatis dari session --}}
+                    <input type="number" name="table_number" id="tableInput" class="form-input" value="{{ $sessTable }}" placeholder="Contoh: 12">
                 </div>
             </div>
             
@@ -199,10 +200,9 @@
             </div>
         </div>
 
-        {{-- 3. METODE PEMBAYARAN (Hanya Midtrans) --}}
+        {{-- 3. METODE PEMBAYARAN --}}
         <div class="co-card">
             <span class="co-title">Metode Pembayaran</span>
-            
             <label class="payment-option active" style="cursor: default;">
                 <div class="pay-icon"><i class="fas fa-qrcode"></i></div>
                 <div class="pay-info">
@@ -242,19 +242,29 @@
 @push('scripts')
 <script>
     function setDining(type) {
-        document.querySelectorAll('.dining-tab').forEach(el => el.classList.remove('active'));
-        event.currentTarget.classList.add('active');
-
+        // Hapus styling active manual (karena kita pakai CSS :has checked)
+        // Tapi untuk fallback JS:
         const dineInBox = document.getElementById('dineInFields');
-        const reqInputs = document.querySelectorAll('#dineInFields .form-input, #dineInFields select');
+        const areaInput = document.getElementById('areaInput');
+        const tableInput = document.getElementById('tableInput');
 
         if (type === 'dine_in') {
             dineInBox.style.display = 'block';
-            reqInputs.forEach(el => el.setAttribute('required', 'required'));
+            // Set required via JS agar validasi form jalan
+            areaInput.setAttribute('required', 'required');
+            tableInput.setAttribute('required', 'required');
         } else {
             dineInBox.style.display = 'none';
-            reqInputs.forEach(el => el.removeAttribute('required'));
+            areaInput.removeAttribute('required');
+            tableInput.removeAttribute('required');
         }
     }
+
+    // Jalankan saat halaman load untuk set tampilan awal sesuai Session
+    document.addEventListener("DOMContentLoaded", function() {
+        // Cek mana radio yang checked dari PHP
+        const selectedOption = document.querySelector('input[name="dining_option"]:checked').value;
+        setDining(selectedOption);
+    });
 </script>
 @endpush

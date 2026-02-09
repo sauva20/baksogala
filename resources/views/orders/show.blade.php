@@ -2,6 +2,15 @@
 
 @section('title', 'Detail Pembayaran')
 
+@section('styles')
+    <style>
+        /* FIX: Sembunyikan Footer di Halaman Ini */
+        footer { display: none !important; }
+        
+        body { background-color: #F4F6F9; padding-bottom: 50px; }
+    </style>
+@endsection
+
 @section('content')
 <div class="container" style="max-width: 600px; padding: 40px 20px;">
     
@@ -14,8 +23,6 @@
             <a href="{{ route('menu.index') }}" class="btn btn-secondary">Pesan Lagi</a>
         </div>
 
-    {{-- FIX: Tambahkan kondisi OR (||) untuk status selain 'new'/'pending' --}}
-    {{-- Agar jika Admin ubah status manual, tampilan user ikut berubah --}}
     @elseif($order->payment_status == 'paid' || in_array($order->status, ['process', 'preparing', 'ready', 'completed']))
         <div style="text-align: center; margin-bottom: 30px;">
             <i class="fas fa-check-circle" style="font-size: 4rem; color: #4caf50;"></i>

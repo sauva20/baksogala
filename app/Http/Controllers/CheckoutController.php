@@ -17,14 +17,12 @@ class CheckoutController extends Controller
 {
     public function __construct()
     {
-        // Konfigurasi Midtrans
         Config::$serverKey = config('midtrans.server_key', env('MIDTRANS_SERVER_KEY'));
         Config::$isProduction = config('midtrans.is_production', env('MIDTRANS_IS_PRODUCTION', false));
         Config::$isSanitized = true;
         Config::$is3ds = true;
     }
 
-    // Helper untuk mengambil keranjang (Support Login & Tamu)
     private function getCartItems()
     {
         $userId = Auth::id();
@@ -57,7 +55,7 @@ class CheckoutController extends Controller
 
         $grandTotal = 0;
         $cartItems = [];
-        $allAddons = MenuItem::where('category', 'Tambahan')->get()->keyBy('id');
+        $allAddons = MenuItem::whereIn('category', ['Tambahan', 'Side Dish', 'Topping'])->get()->keyBy('id');
 
         foreach ($rawCartItems as $item) {
             $unitPrice = $item->menu_price;
@@ -90,88 +88,80 @@ class CheckoutController extends Controller
             ];
         }
 
-        // Ambil Data Session (Hasil Scan QR)
+        // Ambil Data Session untuk Auto-Fill
         $scannedTable = session('table_number', null);
-        $scannedArea  = session('dining_area', null); // Ambil lokasi juga
+        $scannedArea  = session('table_area', null); // Perbaikan nama session key
 
         return view('checkout.index', compact('cartItems', 'grandTotal', 'scannedTable', 'scannedArea'));
     }
 
     public function store(Request $request)
     {
-        // 1. Validasi
+        // 1. Validasi Input
         $request->validate([
             'customer_name' => 'required|string|max:255',
             'customer_phone' => 'required|string|max:20',
             'dining_option' => 'required|in:dine_in,take_away',
-            'table_number' => 'required_if:dining_option,dine_in',
+            // Wajib isi meja & area jika Dine In
+            'table_number' => 'required_if:dining_option,dine_in', 
             'dining_area' => 'required_if:dining_option,dine_in',
         ]);
 
         DB::beginTransaction();
         try {
-            // 2. Ambil Keranjang
             $rawCartItems = $this->getCartItems();
 
             if ($rawCartItems->isEmpty()) {
-                return redirect()->back()->with('error', 'Gagal: Keranjang kosong atau sesi kadaluarsa. Silakan refresh.');
+                return redirect()->route('menu.index')->with('error', 'Keranjang kosong.');
             }
 
-            // 3. Hitung Total (Backend Calculation)
+            // 2. Hitung Ulang Total (Security)
             $calculatedTotal = 0;
-            $allAddons = MenuItem::where('category', 'Tambahan')->get()->keyBy('id');
+            $allAddons = MenuItem::all()->keyBy('id'); // Ambil semua menu untuk cek ID topping
 
             foreach ($rawCartItems as $cItem) {
                 $uPrice = $cItem->menu_price;
+                
+                // Hitung harga topping
                 if ($cItem->addons) {
                     $aIds = json_decode($cItem->addons, true);
                     if (is_array($aIds)) {
                         foreach ($aIds as $id) {
-                            if (isset($allAddons[$id])) $uPrice += $allAddons[$id]->price;
+                            if (isset($allAddons[$id])) {
+                                $uPrice += $allAddons[$id]->price;
+                            }
                         }
                     }
                 }
                 $calculatedTotal += $uPrice * $cItem->quantity;
             }
 
-            // --- PERHITUNGAN BIAYA LAYANAN (0.7%) ---
+            // Biaya Layanan
             $appFee = $calculatedTotal * 0.007; 
-            $finalTotal = ceil($calculatedTotal + $appFee); // Bulatkan ke atas
+            $finalTotal = ceil($calculatedTotal + $appFee);
 
-            // 4. Handle User (Auto Register & Login Tamu)
+            // 3. Handle User
             $user = null;
             if (Auth::check()) {
                 $user = Auth::user();
-                if (empty($user->phone_number)) {
-                    $user->update(['phone_number' => $request->customer_phone]);
-                }
+                if (empty($user->phone_number)) $user->update(['phone_number' => $request->customer_phone]);
             } else {
-                // Cari user berdasarkan No HP
-                $user = User::where('phone_number', $request->customer_phone)->first();
-                if (!$user) {
-                    // Buat User Baru
-                    $user = User::create([
-                        'name' => $request->customer_name,
-                        'phone_number' => $request->customer_phone,
-                        'email' => null,
-                        'password' => Hash::make('gala123'), // Password Default
-                        'role' => 'customer'
-                    ]);
-                }
-                // LOGIN KAN USER SECARA OTOMATIS
+                $user = User::firstOrCreate(
+                    ['phone_number' => $request->customer_phone],
+                    ['name' => $request->customer_name, 'password' => Hash::make('gala123'), 'role' => 'customer']
+                );
                 Auth::login($user);
             }
 
-            // 5. Simpan Order
+            // 4. Simpan Order Utama
             $order = new Order();
             $order->user_id = $user->id;
             $order->customer_name = $request->customer_name;
             $order->customer_phone = $request->customer_phone;
-            $order->customer_email = $request->customer_email;
             
             if ($request->dining_option == 'dine_in') {
                 $order->order_type = 'Dine In';
-                // Gabungkan Area dan Nomor Meja
+                // SIMPAN FORMAT: "Area - Meja X"
                 $order->shipping_address = $request->dining_area . ' - Meja ' . $request->table_number;
             } else {
                 $order->order_type = 'Take Away';
@@ -185,7 +175,7 @@ class CheckoutController extends Controller
             $order->order_notes = $request->order_notes;
             $order->save();
 
-            // 6. Simpan Detail Item
+            // 5. SIMPAN DETAIL ITEM & TOPPING (INI BAGIAN FIX NYA)
             foreach ($rawCartItems as $item) {
                 $detail = new OrderDetail();
                 $detail->order_id = $order->id;
@@ -193,15 +183,16 @@ class CheckoutController extends Controller
                 $detail->quantity = $item->quantity;
                 
                 $unitPrice = $item->menu_price;
-                $addonNames = [];
+                $addonNames = []; // Array nama topping
 
+                // Ambil Nama & Harga Topping
                 if ($item->addons) {
                     $addonIds = json_decode($item->addons, true);
                     if (is_array($addonIds)) {
                         foreach ($addonIds as $addonId) {
                             if (isset($allAddons[$addonId])) {
                                 $unitPrice += $allAddons[$addonId]->price;
-                                $addonNames[] = $allAddons[$addonId]->name;
+                                $addonNames[] = $allAddons[$addonId]->name; // Simpan Nama
                             }
                         }
                     }
@@ -210,15 +201,19 @@ class CheckoutController extends Controller
                 $detail->price = $unitPrice;
                 $detail->subtotal = $unitPrice * $item->quantity;
                 
-                $noteString = $item->notes ?? '';
-                if(!empty($addonNames)) {
-                    $noteString .= (empty($noteString) ? '' : ' | ') . "Topping: " . implode(", ", $addonNames);
+                // GABUNGKAN CATATAN + NAMA TOPPING
+                // Format: "Jangan pedas | Topping: Ceker, Tetelan"
+                $finalNote = $item->notes ?? '';
+                if (!empty($addonNames)) {
+                    $addonString = "Topping: " . implode(", ", $addonNames);
+                    $finalNote = empty($finalNote) ? $addonString : ($finalNote . " | " . $addonString);
                 }
-                $detail->item_notes = $noteString;
+
+                $detail->item_notes = $finalNote; // Simpan ke database
                 $detail->save();
             }
 
-            // 7. Snap Token Midtrans
+            // 6. Request Snap Token
             $params = [
                 'transaction_details' => [
                     'order_id' => $order->id . '-' . time(),
@@ -228,7 +223,6 @@ class CheckoutController extends Controller
                     'first_name' => $request->customer_name,
                     'phone' => $request->customer_phone,
                 ],
-                // 👇 KHUSUS QRIS (Langsung muncul QR tanpa pilih menu) 👇
                 'enabled_payments' => ['other_qris'],
             ];
             
@@ -236,18 +230,20 @@ class CheckoutController extends Controller
             $order->snap_token = $snapToken;
             $order->save();
 
-            // 8. Hapus Keranjang & Session
-            DB::table('cart_items')->where('user_id', $user->id)->delete();
-            session()->forget(['table_number', 'dining_area']); // Hapus session meja & area
+            // 7. Bersihkan Keranjang
+            DB::table('cart_items')->where(function($query) use ($user) {
+                $query->where('user_id', $user->id)
+                      ->orWhere('session_id', session()->getId());
+            })->delete();
+            
+            session()->forget(['table_number', 'table_area']); 
 
             DB::commit();
-
-            // Redirect ke Halaman Pembayaran (Order Detail)
-            return redirect()->route('orders.show', $order->id)->with('success', 'Pesanan dibuat! Silakan bayar.');
+            return redirect()->route('orders.show', $order->id)->with('success', 'Pesanan dibuat!');
 
         } catch (\Exception $e) {
             DB::rollback();
-            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage())->withInput();
+            return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
         }
     }
 }

@@ -5,13 +5,13 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
-use App\Models\MenuItem; // Pastikan model ini ada
+use App\Models\MenuItem; // Pastikan Model ini sesuai dengan file Anda
 
 class CartController extends Controller
 {
     /**
      * Helper Private: Mendapatkan Query Builder untuk user saat ini
-     * (Otomatis memilih antara User Login atau Tamu)
+     * (Otomatis memilih antara User Login atau Tamu via Session)
      */
     private function getCartQuery()
     {
@@ -33,7 +33,7 @@ class CartController extends Controller
             ->select(
                 'cart_items.*', 
                 'menu_items.name as menu_name', 
-                'menu_items.price as menu_price', 
+                'menu_items.price as base_menu_price', // Harga dasar menu
                 'menu_items.image_url'
             )
             ->get();
@@ -41,45 +41,57 @@ class CartController extends Controller
         $subtotal = 0;
         $finalCartItems = []; 
 
-        // 2. Ambil harga Side Dishes untuk perhitungan
-        $allAddons = MenuItem::where('category', 'Tambahan')->get()->keyBy('id');
+        // 2. Ambil semua data topping untuk lookup nama & harga
+        // Kita ambil semua menu agar aman, atau bisa filter kategori 'Tambahan'/'Side Dish'
+        $allMenuItems = MenuItem::all()->keyBy('id');
 
-        // 3. Loop item untuk hitung total (Menu Utama + Addons)
+        // 3. Loop item untuk menyusun tampilan & hitung harga total
         foreach ($cartItems as $item) {
-            $itemTotal = $item->menu_price;
+            
+            // Mulai dengan harga dasar menu
+            $currentPrice = $item->base_menu_price;
             $addonNames = [];
 
-            if ($item->addons) {
+            // Cek apakah ada topping yang tersimpan (format JSON di database)
+            if (!empty($item->addons)) {
                 $addonIds = json_decode($item->addons, true);
+                
                 if (is_array($addonIds)) {
                     foreach ($addonIds as $addonId) {
-                        if (isset($allAddons[$addonId])) {
-                            $itemTotal += $allAddons[$addonId]->price;
-                            $addonNames[] = $allAddons[$addonId]->name;
+                        // Cek apakah ID topping ada di database menu
+                        if (isset($allMenuItems[$addonId])) {
+                            // Tambahkan harga topping ke harga satuan
+                            $currentPrice += $allMenuItems[$addonId]->price;
+                            // Simpan nama topping untuk ditampilkan di view
+                            $addonNames[] = $allMenuItems[$addonId]->name;
                         }
                     }
                 }
             }
 
-            $subtotal += $itemTotal * $item->quantity;
+            // Hitung total per baris (Harga Satuan Akhir * Jumlah)
+            $lineTotal = $currentPrice * $item->quantity;
+            $subtotal += $lineTotal;
 
+            // Format data object untuk dikirim ke View
             $finalCartItems[] = (object) [
                 'id' => $item->id, 
                 'menu_name' => $item->menu_name,
                 'image_url' => $item->image_url,
-                'price_per_unit' => $itemTotal,
+                'price_per_unit' => $currentPrice, // Harga Satuan (Menu + Topping)
                 'quantity' => $item->quantity,
-                'total_price' => $itemTotal * $item->quantity,
+                'price' => $lineTotal, // Total harga item ini
                 'notes' => $item->notes,
-                'addons_list' => implode(', ', $addonNames)
+                'addons_list' => implode(', ', $addonNames), // String nama topping (Ceker, Tetelan)
+                'addons' => $item->addons // Raw JSON (untuk keperluan teknis jika butuh)
             ];
         }
 
-        // [BARU] 4. Ambil Menu Rekomendasi (Related Menus)
-        // Ambil 5 menu secara acak selain yang ada di keranjang
+        // 4. Ambil Menu Rekomendasi (Related Menus)
+        // Ambil 5 menu acak selain yang ada di keranjang & bukan topping
         $cartMenuIds = $cartItems->pluck('menu_item_id')->toArray();
         $relatedMenus = MenuItem::whereNotIn('id', $cartMenuIds)
-            ->where('category', '!=', 'Tambahan') // Jangan rekomendasikan topping
+            ->whereNotIn('category', ['Tambahan', 'Side Dish', 'Topping']) // Hindari rekomendasi topping
             ->inRandomOrder()
             ->limit(5)
             ->get();
@@ -92,29 +104,35 @@ class CartController extends Controller
      */
     public function addToCart(Request $request)
     {
+        // 1. Validasi Input
         $request->validate([
             'menu_id' => 'required|exists:menu_items,id',
             'quantity' => 'required|integer|min:1',
-            'addons' => 'nullable|array',
+            'addons' => 'nullable|array', // Harus array ID
             'notes' => 'nullable|string'
         ]);
 
         $userId = Auth::id();
         $sessionId = session()->getId();
 
-        // 1. Masukkan ke Database
+        // 2. Masukkan ke Database
+        // Kita tidak perlu menghitung harga di sini untuk disimpan ke kolom price,
+        // karena harga bisa berubah. Kita hitung dinamis di fungsi index().
+        // Tapi pastikan ID topping tersimpan sebagai JSON.
+        
         DB::table('cart_items')->insert([
             'user_id' => $userId,
             'session_id' => $userId ? null : $sessionId,
             'menu_item_id' => $request->menu_id,
             'quantity' => $request->quantity,
-            'addons' => json_encode($request->addons ?? []),
+            // Simpan ID Topping sebagai JSON String
+            'addons' => !empty($request->addons) ? json_encode($request->addons) : null,
             'notes' => $request->notes,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
 
-        // 2. HITUNG ULANG Total Item untuk Badge Navbar
+        // 3. HITUNG ULANG Total Item untuk Badge Navbar (Realtime update)
         $newCount = 0;
         if ($userId) {
             $newCount = DB::table('cart_items')->where('user_id', $userId)->sum('quantity');
@@ -122,11 +140,10 @@ class CartController extends Controller
             $newCount = DB::table('cart_items')->where('session_id', $sessionId)->sum('quantity');
         }
 
-        // 3. Kembalikan Response JSON termasuk cart_count terbaru
         return response()->json([
             'status' => 'success', 
             'message' => 'Berhasil masuk keranjang!',
-            'cart_count' => $newCount // Data ini akan dipakai Javascript untuk update navbar
+            'cart_count' => $newCount
         ]);
     }
 
@@ -162,7 +179,7 @@ class CartController extends Controller
     }
 
     /**
-     * [BARU] Update Catatan Item (AJAX)
+     * Update Catatan Item (AJAX)
      */
     public function updateNote(Request $request)
     {
@@ -182,20 +199,27 @@ class CartController extends Controller
     }
 
     /**
-     * [BARU] Simpan Info Meja & Tipe Pesanan ke Session (AJAX)
+     * Simpan Info Meja & Tipe Pesanan ke Session (AJAX)
+     * Dipanggil saat user memilih Dine In/Take Away di halaman Keranjang
+     */
+/**
+     * Simpan Info Meja, Area & Tipe Pesanan
      */
     public function saveInfo(Request $request)
     {
         // Validasi input
         $request->validate([
             'dining_option' => 'required|in:dine_in,take_away',
-            'table_number'  => 'nullable|numeric'
+            'table_number'  => 'nullable|numeric',
+            'table_area'    => 'nullable|string' // Tambahkan validasi Area
         ]);
 
-        // Simpan ke Session Laravel agar bisa diambil saat Checkout
+        // Simpan ke Session
         session([
             'dining_option' => $request->dining_option,
-            'table_number'  => $request->dining_option == 'dine_in' ? $request->table_number : null
+            // Jika take away, meja & area dikosongkan
+            'table_number'  => $request->dining_option == 'dine_in' ? $request->table_number : null,
+            'table_area'    => $request->dining_option == 'dine_in' ? $request->table_area : null
         ]);
 
         return response()->json(['status' => 'success']);

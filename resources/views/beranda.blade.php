@@ -157,12 +157,12 @@
                             {{-- Foto Customer (BESAR & JELAS) --}}
 <div class="customer-photo">
     @if($review->photo)
-        {{-- Langsung memanggil path yang disimpan di DB --}}
+        {{-- Pastikan path di DB adalah 'uploads/reviews/namafile.jpg' --}}
         <img src="{{ asset($review->photo) }}" alt="Foto Review">
     @else
-        <div style="width:100%; height:100%; background:#f0f0f0; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#ccc;">
-            <i class="fas fa-image" style="font-size: 3rem; margin-bottom:10px;"></i>
-            <span style="font-size:0.8rem;">Tidak ada foto</span>
+        {{-- Fallback jika foto tidak ada --}}
+        <div style="width:100%; height:100%; background:#f0f0f0; display:flex; align-items:center; justify-content:center;">
+             <i class="fas fa-image" style="font-size: 3rem; color:#ccc;"></i>
         </div>
     @endif
 </div>
