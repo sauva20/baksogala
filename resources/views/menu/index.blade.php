@@ -4,6 +4,7 @@
 
 @section('styles')
     <link rel="stylesheet" href="{{ asset('assets/css/menu.css') }}">
+    <link rel="icon" href="{{ asset('assets/images/gala.png') }}" type="image/png">
     <style>
         /* --- GLOBAL VARIABLES --- */
         :root {

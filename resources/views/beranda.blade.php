@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
 <link rel="stylesheet" href="{{ asset('assets/css/navbar.css') }}">
 {{-- Sesuaikan path favicon jika ada di dalam assets/images --}}
-<link rel="icon" href="{{ asset('assets/images/favicon.ico') }}" type="image/x-icon">
+<link rel="icon" href="{{ asset('assets/images/gala.png') }}" type="image/png">
 
     {{-- Link Eksternal --}}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">

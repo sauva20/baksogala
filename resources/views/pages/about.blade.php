@@ -4,6 +4,7 @@
 
 @section('styles')
     <link rel="stylesheet" href="{{ asset('assets/css/about.css') }}">
+    <link rel="icon" href="{{ asset('assets/images/gala.png') }}" type="image/png">
 @endsection
 
 @section('content')

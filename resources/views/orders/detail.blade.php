@@ -3,6 +3,7 @@
 @section('title', 'Detail Pesanan & Review')
 
 @section('styles')
+<link rel="icon" href="{{ asset('assets/images/gala.png') }}" type="image/png">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 {{-- Gunakan CSS yang sama seperti sebelumnya --}}
 <style>

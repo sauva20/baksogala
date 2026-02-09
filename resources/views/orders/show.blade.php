@@ -3,6 +3,7 @@
 @section('title', 'Detail Pembayaran')
 
 @section('styles')
+<link rel="icon" href="{{ asset('assets/images/gala.png') }}" type="image/png">
     <style>
         /* FIX: Sembunyikan Footer di Halaman Ini */
         footer { display: none !important; }
