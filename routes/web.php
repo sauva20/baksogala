@@ -40,7 +40,7 @@ Route::get('/tentang-kami', [PageController::class, 'about'])->name('about');
 
 // --- [PENTING] ROUTE SCAN QR CODE ---
 // Route ini menangkap hasil scan QR dari meja (Contoh: /scan/Lantai-2/5)
-Route::get('/scan/{area}/{table}', [HomeController::class, 'scanQr'])->name('scan.qr');
+Route::get('/scan/{area}/{table}', [HomepageController::class, 'scanQr'])->name('scan.qr');
 
 // Halaman Menu
 Route::get('/menu', [MenuController::class, 'index'])->name('menu.index');
@@ -127,7 +127,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
     // Halaman untuk Admin mencetak QR Code
     Route::get('/generate-qr', function () {
         $areas = ['Lantai 2 Gym', 'Indoor More', 'Depan Utama'];
-        $totalMejaPerArea = 10; 
+        $totalMejaPerArea = 20; 
         return view('admin.print_qr', compact('areas', 'totalMejaPerArea'));
     })->name('qr.generate');
 
