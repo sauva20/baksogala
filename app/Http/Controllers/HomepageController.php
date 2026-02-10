@@ -16,7 +16,8 @@ class HomepageController extends Controller
         // ----------------------------------------------------
         // 1. AMBIL MENU UNGGULAN (Untuk Section Menu Preview)
         // ----------------------------------------------------
-        // Mengambil menu yang ditandai 'show_on_homepage', urutkan nama, ambil 6
+        // Mengambil menu yang ditandai 'show_on_homepage' (misal: menu best seller)
+        // Diurutkan berdasarkan nama, dan diambil maksimal 6 item.
         $menuItems = MenuItem::where('show_on_homepage', true)
                              ->orderBy('name')
                              ->take(6) 
@@ -25,10 +26,10 @@ class HomepageController extends Controller
         // ----------------------------------------------------
         // 2. AMBIL REVIEW PILIHAN (Untuk Section Testimonials)
         // ----------------------------------------------------
-        // - with('order'): Eager load relasi order untuk ambil nama customer
+        // - with('order'): Eager load relasi order untuk ambil nama customer dari tabel orders
         // - where('is_featured', true): Hanya ambil review yang sudah diapprove admin/AI
         // - latest(): Urutkan dari yang terbaru
-        // - take(5): Ambil 5 review saja untuk slider
+        // - take(5): Ambil 5 review saja untuk slider agar tidak berat
         $reviews = Review::with('order')
                          ->where('is_featured', true)
                          ->latest()
@@ -38,9 +39,9 @@ class HomepageController extends Controller
         // ----------------------------------------------------
         // 3. KIRIM DATA KE VIEW
         // ----------------------------------------------------
-        // Pastikan nama view ini ('index') sesuai dengan nama file di resources/views/
-        // Jika file Anda bernama 'beranda.blade.php', ubah 'index' jadi 'beranda'.
-        return view('index', [
+        // Mengirim data $menuItems dan $reviews ke view 'beranda'.
+        // Pastikan file view Anda ada di: resources/views/beranda.blade.php
+        return view('beranda', [
             'menu_items' => $menuItems,
             'reviews'    => $reviews
         ]);
