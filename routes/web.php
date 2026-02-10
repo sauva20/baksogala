@@ -10,6 +10,7 @@ use App\Http\Controllers\PageController;
 use App\Http\Controllers\AuthController; 
 use App\Http\Controllers\CheckoutController; 
 use App\Http\Controllers\OrderController; 
+use App\Http\Controllers\HomeController; // Pastikan ini ada untuk Scan QR
 
 // --- CONTROLLER ADMIN (BACKEND) ---
 use App\Http\Controllers\Admin\DashboardController;
@@ -37,6 +38,10 @@ use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 Route::get('/', [HomepageController::class, 'index'])->name('home');
 Route::get('/tentang-kami', [PageController::class, 'about'])->name('about');
 
+// --- [PENTING] ROUTE SCAN QR CODE ---
+// Route ini menangkap hasil scan QR dari meja (Contoh: /scan/Lantai-2/5)
+Route::get('/scan/{area}/{table}', [HomeController::class, 'scanQr'])->name('scan.qr');
+
 // Halaman Menu
 Route::get('/menu', [MenuController::class, 'index'])->name('menu.index');
 
@@ -59,19 +64,19 @@ Route::post('/cart/save-info', [CartController::class, 'saveInfo'])->name('cart.
 Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
 Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
 
-// 1. Halaman Pembayaran / Struk (Midtrans)
+// 1. Halaman Pembayaran / Struk (Midtrans & Status Order)
 Route::get('/pesanan/{id}', [OrderController::class, 'show'])->name('orders.show');
 
-// 2. Halaman Detail Pesanan Lengkap (Untuk melihat item & total)
+// 2. Halaman Detail Pesanan Lengkap (Untuk melihat item & form review)
 Route::get('/pesanan/{id}/detail', [OrderController::class, 'detail'])->name('orders.detail');
 
 // -----------------------------------------------------------
-// FITUR REVIEW & AI (WAJIB DI PUBLIK)
+// FITUR REVIEW & AI
 // -----------------------------------------------------------
 // Proses Kirim Review (Bintang & Foto)
 Route::post('/pesanan/{id}/review', [OrderController::class, 'storeReview'])->name('orders.review.store');
 
-// AI Polish Review (Ini yang kemarin error, sekarang sudah benar posisinya)
+// AI Polish Review (Memperbaiki kalimat review user)
 Route::post('/review/polish', [OrderController::class, 'polishReview'])->name('review.polish');
 
 
@@ -88,9 +93,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 // 2. AREA MEMBER (WAJIB LOGIN)
 // ====================================================
 Route::middleware(['auth'])->group(function () {
-    // Jika nanti Anda ingin menambahkan halaman profil atau history member
-    // Route::get('/profile', [UserController::class, 'profile'])->name('profile');
-    // Route::get('/riwayat-pesanan', [OrderController::class, 'history'])->name('orders.history');
+    // Route khusus member (profil, history) bisa ditambahkan di sini
 });
 
 
@@ -98,12 +101,12 @@ Route::middleware(['auth'])->group(function () {
 // 3. AREA ADMIN (PANEL KELOLA)
 // ====================================================
 
-// Login Khusus Admin (Publik)
+// Login Khusus Admin (Halaman Login Admin)
 Route::get('/admin/login', [LoginController::class, 'showLoginForm'])->name('admin.login');
 Route::post('/admin/login', [LoginController::class, 'login'])->name('admin.login.submit');
 Route::post('/admin/logout', [LoginController::class, 'logout'])->name('admin.logout');
 
-// Group Route Admin (PROTECTED)
+// Group Route Admin (PROTECTED / WAJIB LOGIN)
 Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () {
     
     // Dashboard
@@ -113,12 +116,20 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
     Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
     Route::patch('/orders/{id}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.updateStatus');
     
-    // API Notifikasi Realtime & Detail Modal
+    // API Notifikasi Realtime & Detail Modal (AJAX)
     Route::get('/orders/check-new', [AdminOrderController::class, 'checkNewOrders'])->name('orders.checkNew');
     Route::get('/orders/{id}/detail', [AdminOrderController::class, 'getOrderDetail'])->name('orders.detail');
 
     // --- MANAJEMEN MENU ---
     Route::resource('menu', AdminMenuController::class)->except(['create', 'show', 'edit']);
+
+    // --- GENERATOR QR CODE MEJA ---
+    // Halaman untuk Admin mencetak QR Code
+    Route::get('/generate-qr', function () {
+        $areas = ['Lantai 2 Gym', 'Indoor More', 'Depan Utama'];
+        $totalMejaPerArea = 10; 
+        return view('admin.print_qr', compact('areas', 'totalMejaPerArea'));
+    })->name('qr.generate');
 
     // --- MANAJEMEN LAINNYA ---
     Route::resource('promotions', PromotionController::class);
