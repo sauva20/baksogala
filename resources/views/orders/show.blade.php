@@ -260,9 +260,11 @@
 @endsection
 
 @push('scripts')
-{{-- Cek apakah mode Production atau Sandbox --}}
-<script src="{{ config('midtrans.is_production') ? 'https://app.midtrans.com/snap/snap.js' : 'https://app.sandbox.midtrans.com/snap/snap.js' }}" data-client-key="{{ config('midtrans.client_key') }}"></script>
-
+{{-- Script Midtrans Dinamis (Sandbox / Production) --}}
+<script 
+    src="{{ config('midtrans.is_production') ? 'https://app.midtrans.com/snap/snap.js' : 'https://app.sandbox.midtrans.com/snap/snap.js' }}" 
+    data-client-key="{{ config('midtrans.client_key') }}">
+</script>
 <script type="text/javascript">
     // --- LOGIKA TIMER ---
     @if(in_array($order->status, ['new', 'pending']) && $order->payment_status != 'paid')
