@@ -95,15 +95,14 @@ class CheckoutController extends Controller
         return view('checkout.index', compact('cartItems', 'grandTotal', 'scannedTable', 'scannedArea'));
     }
 
-    public function store(Request $request)
+public function store(Request $request)
     {
         // 1. Validasi Input
         $request->validate([
             'customer_name' => 'required|string|max:255',
             'customer_phone' => 'required|string|max:20',
             'dining_option' => 'required|in:dine_in,take_away',
-            // Wajib isi meja & area jika Dine In
-            'table_number' => 'required_if:dining_option,dine_in', 
+            'table_number' => 'required_if:dining_option,dine_in',
             'dining_area' => 'required_if:dining_option,dine_in',
         ]);
 
@@ -112,23 +111,23 @@ class CheckoutController extends Controller
             $rawCartItems = $this->getCartItems();
 
             if ($rawCartItems->isEmpty()) {
-                return redirect()->route('menu.index')->with('error', 'Keranjang kosong.');
+                return redirect()->route('menu.index')->with('error', 'Gagal: Keranjang kosong.');
             }
 
-            // 2. Hitung Ulang Total (Security)
+            // 2. Hitung Total & Load Data Menu
             $calculatedTotal = 0;
-            $allAddons = MenuItem::all()->keyBy('id'); // Ambil semua menu untuk cek ID topping
+            // Ambil semua menu (termasuk topping) untuk referensi harga & nama
+            $allMenuItems = MenuItem::all()->keyBy('id'); 
 
             foreach ($rawCartItems as $cItem) {
                 $uPrice = $cItem->menu_price;
                 
-                // Hitung harga topping
                 if ($cItem->addons) {
                     $aIds = json_decode($cItem->addons, true);
                     if (is_array($aIds)) {
                         foreach ($aIds as $id) {
-                            if (isset($allAddons[$id])) {
-                                $uPrice += $allAddons[$id]->price;
+                            if (isset($allMenuItems[$id])) {
+                                $uPrice += $allMenuItems[$id]->price;
                             }
                         }
                     }
@@ -136,7 +135,6 @@ class CheckoutController extends Controller
                 $calculatedTotal += $uPrice * $cItem->quantity;
             }
 
-            // Biaya Layanan
             $appFee = $calculatedTotal * 0.007; 
             $finalTotal = ceil($calculatedTotal + $appFee);
 
@@ -153,7 +151,7 @@ class CheckoutController extends Controller
                 Auth::login($user);
             }
 
-            // 4. Simpan Order Utama
+            // 4. Simpan Order Header
             $order = new Order();
             $order->user_id = $user->id;
             $order->customer_name = $request->customer_name;
@@ -161,7 +159,6 @@ class CheckoutController extends Controller
             
             if ($request->dining_option == 'dine_in') {
                 $order->order_type = 'Dine In';
-                // SIMPAN FORMAT: "Area - Meja X"
                 $order->shipping_address = $request->dining_area . ' - Meja ' . $request->table_number;
             } else {
                 $order->order_type = 'Take Away';
@@ -175,7 +172,7 @@ class CheckoutController extends Controller
             $order->order_notes = $request->order_notes;
             $order->save();
 
-            // 5. SIMPAN DETAIL ITEM & TOPPING (INI BAGIAN FIX NYA)
+            // 5. Simpan Order Detail (Include Nama Topping)
             foreach ($rawCartItems as $item) {
                 $detail = new OrderDetail();
                 $detail->order_id = $order->id;
@@ -183,16 +180,17 @@ class CheckoutController extends Controller
                 $detail->quantity = $item->quantity;
                 
                 $unitPrice = $item->menu_price;
-                $addonNames = []; // Array nama topping
+                $addonNamesArray = [];
 
-                // Ambil Nama & Harga Topping
                 if ($item->addons) {
                     $addonIds = json_decode($item->addons, true);
                     if (is_array($addonIds)) {
                         foreach ($addonIds as $addonId) {
-                            if (isset($allAddons[$addonId])) {
-                                $unitPrice += $allAddons[$addonId]->price;
-                                $addonNames[] = $allAddons[$addonId]->name; // Simpan Nama
+                            if (isset($allMenuItems[$addonId])) {
+                                // Tambah harga
+                                $unitPrice += $allMenuItems[$addonId]->price; 
+                                // Simpan nama topping
+                                $addonNamesArray[] = $allMenuItems[$addonId]->name; 
                             }
                         }
                     }
@@ -201,19 +199,22 @@ class CheckoutController extends Controller
                 $detail->price = $unitPrice;
                 $detail->subtotal = $unitPrice * $item->quantity;
                 
-                // GABUNGKAN CATATAN + NAMA TOPPING
-                // Format: "Jangan pedas | Topping: Ceker, Tetelan"
+                // Gabung Note User + Note Topping
                 $finalNote = $item->notes ?? '';
-                if (!empty($addonNames)) {
-                    $addonString = "Topping: " . implode(", ", $addonNames);
-                    $finalNote = empty($finalNote) ? $addonString : ($finalNote . " | " . $addonString);
+                if (!empty($addonNamesArray)) {
+                    $addonString = "Topping: " . implode(", ", $addonNamesArray);
+                    if (!empty($finalNote)) {
+                        $finalNote .= " | " . $addonString;
+                    } else {
+                        $finalNote = $addonString;
+                    }
                 }
 
-                $detail->item_notes = $finalNote; // Simpan ke database
+                $detail->item_notes = $finalNote;
                 $detail->save();
             }
 
-            // 6. Request Snap Token
+            // 6. Request Snap Token (FULL PAYMENT METHODS)
             $params = [
                 'transaction_details' => [
                     'order_id' => $order->id . '-' . time(),
@@ -223,14 +224,14 @@ class CheckoutController extends Controller
                     'first_name' => $request->customer_name,
                     'phone' => $request->customer_phone,
                 ],
-                'enabled_payments' => ['other_qris'],
+                // 'enabled_payments' => ['other_qris'], <--- INI SAYA HAPUS AGAR SEMUA METODE MUNCUL
             ];
             
             $snapToken = Snap::getSnapToken($params);
             $order->snap_token = $snapToken;
             $order->save();
 
-            // 7. Bersihkan Keranjang
+            // 7. Bersihkan Cart & Session
             DB::table('cart_items')->where(function($query) use ($user) {
                 $query->where('user_id', $user->id)
                       ->orWhere('session_id', session()->getId());
@@ -239,7 +240,7 @@ class CheckoutController extends Controller
             session()->forget(['table_number', 'table_area']); 
 
             DB::commit();
-            return redirect()->route('orders.show', $order->id)->with('success', 'Pesanan dibuat!');
+            return redirect()->route('orders.show', $order->id)->with('success', 'Pesanan dibuat! Silakan pilih pembayaran.');
 
         } catch (\Exception $e) {
             DB::rollback();
