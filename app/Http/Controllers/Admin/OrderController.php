@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Order; 
 use App\Models\OrderDetail;
-use Carbon\Carbon; // Penting untuk logika waktu (10 menit)
+use Carbon\Carbon;
 
 class OrderController extends Controller
 {
@@ -39,7 +39,7 @@ class OrderController extends Controller
         $order = Order::findOrFail($id);
         $order->status = $request->status;
         
-        // Jika status diubah jadi completed/ready, kita anggap sudah dibayar (opsional)
+        // Logic Tambahan: Jika status diubah jadi completed/ready, kita anggap sudah lunas
         if (in_array($request->status, ['ready', 'completed'])) {
             $order->payment_status = 'paid';
         }
@@ -49,55 +49,39 @@ class OrderController extends Controller
         return redirect()->back()->with('success', 'Status pesanan berhasil diperbarui!');
     }
 
-    // --- API: CEK PESANAN BARU & AUTO CANCEL (LOGIKA KOMPLEKS) ---
+    // --- API: CEK PESANAN BARU (KHUSUS YANG SUDAH BAYAR) ---
     // Dipanggil oleh Javascript (setInterval) setiap beberapa detik
     public function checkNewOrders(Request $request)
     {
         $clientLastId = $request->input('last_id', 0);
 
-        // 1. LOGIKA AUTO-CANCEL (Cek pesanan 'unpaid' yang > 10 menit)
-        // Pastikan tabel orders Anda punya kolom 'payment_status' (paid/unpaid)
-        // Jika tidak ada kolom payment_status, ganti dengan logika status biasa (misal status 'new')
-        $expiredCount = Order::where('payment_status', 'unpaid') 
-            ->where('status', '!=', 'cancelled') // Jangan update yang sudah cancel
-            ->where('created_at', '<', Carbon::now()->subMinutes(10)) // Lebih tua dari 10 menit yang lalu
-            ->update(['status' => 'cancelled']);
+        // 1. LOGIKA AUTO-CANCEL (Bersihkan Data Lama)
+        // Batalkan pesanan yang statusnya 'new'/'pending' DAN belum bayar > 10 menit
+        Order::where('status', 'new')
+             ->where('payment_status', 'pending') // Atau 'unpaid', sesuaikan database Anda
+             ->where('created_at', '<', Carbon::now()->subMinutes(10))
+             ->update(['status' => 'cancelled']);
 
-        // 2. CEK PESANAN BARU
-        // Ambil 1 pesanan terlama yang ID-nya lebih besar dari last_id di browser admin
-        // Kita ambil yang terlama (ASC) agar notifikasi muncul berurutan jika ada banyak pesanan sekaligus
+        // 2. CEK PESANAN BARU (HANYA YANG SUDAH PAID)
+        // Ambil 1 pesanan dengan ID > last_id DAN payment_status = 'paid'
         $newOrder = Order::where('id', '>', $clientLastId)
-            ->where('status', '!=', 'cancelled') // Jangan notif kalau statusnya cancelled
-            ->orderBy('id', 'asc') 
+            ->where('payment_status', 'paid') // <--- FILTER UTAMA: HANYA YANG SUDAH BAYAR
+            ->where('status', '!=', 'cancelled')
+            ->orderBy('id', 'asc') // Ambil yang terlama dulu agar urut
             ->first();
 
         if ($newOrder) {
-            // Tentukan Jenis Notifikasi untuk Frontend (SweetAlert)
-            $type = 'info';
-            $title = 'PESANAN BARU!';
-            $msg = "Pesanan #{$newOrder->id} dari {$newOrder->customer_name} masuk.";
-
-            // Logika Status Complex
-            if ($newOrder->payment_status == 'paid') {
-                $type = 'success'; // Warna Hijau di JS
-                $title = '💰 SUDAH DIBAYAR!';
-                $msg = "Pesanan #{$newOrder->id} LUNAS. Siapkan sekarang!";
-            } elseif ($newOrder->payment_status == 'unpaid') {
-                $type = 'warning'; // Warna Kuning di JS
-                $title = '⏳ BELUM DIBAYAR!';
-                $msg = "Pesanan #{$newOrder->id} masuk tapi BELUM LUNAS. Cek bukti bayar!";
-            }
-
+            // Siapkan Data untuk SweetAlert di Frontend
             return response()->json([
                 'has_new'   => true, 
                 'latest_id' => $newOrder->id,
-                'type'      => $type,   // Dikirim ke JS untuk icon/warna
-                'title'     => $title,  // Judul Popup
-                'message'   => $msg     // Isi Pesan
+                'type'      => 'success',  // Warna Hijau
+                'title'     => '💰 PESANAN LUNAS!',
+                'message'   => "Pesanan #{$newOrder->id} dari {$newOrder->customer_name} masuk & SUDAH DIBAYAR. Siapkan sekarang!"
             ]);
         }
 
-        // Tidak ada pesanan baru
+        // Tidak ada pesanan baru yang valid
         return response()->json(['has_new' => false]);
     }
 
@@ -127,12 +111,12 @@ class OrderController extends Controller
             'order' => [
                 'id' => $order->id,
                 'customer_name' => $order->customer_name,
-                'table_number' => $order->table_number,
+                'table_number' => $order->table_number ?? '-', // Handle jika null (takeaway)
                 'status' => ucfirst($order->status),
                 'payment_status' => ucfirst($order->payment_status),
                 'total_price' => number_format($order->total_price, 0, ',', '.'),
                 'created_at' => $order->created_at->format('d M Y H:i'),
-                'notes' => $order->notes ?? '-'
+                'notes' => $order->order_notes ?? '-'
             ],
             'items' => $items
         ]);
