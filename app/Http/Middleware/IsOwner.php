@@ -19,7 +19,7 @@ class IsOwner
             return $next($request);
         }
 
-        // Jika bukan owner (misal: Kasir), tolak akses
+        // Jika bukan owner, tolak akses
         abort(403, 'Akses Ditolak. Halaman ini khusus Owner.');
     }
 }
