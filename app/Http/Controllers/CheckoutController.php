@@ -23,6 +23,7 @@ class CheckoutController extends Controller
         Config::$is3ds = true;
     }
 
+    // Helper: Ambil item di keranjang
     private function getCartItems()
     {
         $userId = Auth::id();
@@ -88,14 +89,13 @@ class CheckoutController extends Controller
             ];
         }
 
-        // Ambil Data Session untuk Auto-Fill
         $scannedTable = session('table_number', null);
-        $scannedArea  = session('table_area', null); // Perbaikan nama session key
+        $scannedArea  = session('table_area', null);
 
         return view('checkout.index', compact('cartItems', 'grandTotal', 'scannedTable', 'scannedArea'));
     }
 
-public function store(Request $request)
+    public function store(Request $request)
     {
         // 1. Validasi Input
         $request->validate([
@@ -116,7 +116,6 @@ public function store(Request $request)
 
             // 2. Hitung Total & Load Data Menu
             $calculatedTotal = 0;
-            // Ambil semua menu (termasuk topping) untuk referensi harga & nama
             $allMenuItems = MenuItem::all()->keyBy('id'); 
 
             foreach ($rawCartItems as $cItem) {
@@ -172,7 +171,7 @@ public function store(Request $request)
             $order->order_notes = $request->order_notes;
             $order->save();
 
-            // 5. Simpan Order Detail (Include Nama Topping)
+            // 5. Simpan Order Detail
             foreach ($rawCartItems as $item) {
                 $detail = new OrderDetail();
                 $detail->order_id = $order->id;
@@ -187,9 +186,7 @@ public function store(Request $request)
                     if (is_array($addonIds)) {
                         foreach ($addonIds as $addonId) {
                             if (isset($allMenuItems[$addonId])) {
-                                // Tambah harga
                                 $unitPrice += $allMenuItems[$addonId]->price; 
-                                // Simpan nama topping
                                 $addonNamesArray[] = $allMenuItems[$addonId]->name; 
                             }
                         }
@@ -199,7 +196,6 @@ public function store(Request $request)
                 $detail->price = $unitPrice;
                 $detail->subtotal = $unitPrice * $item->quantity;
                 
-                // Gabung Note User + Note Topping
                 $finalNote = $item->notes ?? '';
                 if (!empty($addonNamesArray)) {
                     $addonString = "Topping: " . implode(", ", $addonNamesArray);
@@ -214,7 +210,7 @@ public function store(Request $request)
                 $detail->save();
             }
 
-            // 6. Request Snap Token (FULL PAYMENT METHODS)
+            // 6. Request Snap Token (DENGAN QRIS ONLY)
             $params = [
                 'transaction_details' => [
                     'order_id' => $order->id . '-' . time(),
@@ -224,7 +220,8 @@ public function store(Request $request)
                     'first_name' => $request->customer_name,
                     'phone' => $request->customer_phone,
                 ],
-                // 'enabled_payments' => ['other_qris'], <--- INI SAYA HAPUS AGAR SEMUA METODE MUNCUL
+                // 👇 BARIS INI MENGUNCI PEMBAYARAN KE QRIS SAJA 👇
+                'enabled_payments' => ['other_qris'], 
             ];
             
             $snapToken = Snap::getSnapToken($params);
@@ -240,7 +237,7 @@ public function store(Request $request)
             session()->forget(['table_number', 'table_area']); 
 
             DB::commit();
-            return redirect()->route('orders.show', $order->id)->with('success', 'Pesanan dibuat! Silakan pilih pembayaran.');
+            return redirect()->route('orders.show', $order->id)->with('success', 'Pesanan dibuat! Silakan scan QRIS.');
 
         } catch (\Exception $e) {
             DB::rollback();
