@@ -69,31 +69,18 @@
         /* --- MOBILE RESPONSIVE FIX --- */
         @media (max-width: 992px) {
             .admin-wrapper { flex-direction: column; }
-            
-            /* Sidebar jadi Header Atas */
             .admin-sidebar { width: 100% !important; min-width: 100% !important; min-height: auto; padding: 10px 20px; flex-direction: row; justify-content: space-between; align-items: center; position: relative; z-index: 1000; }
-            
-            /* Logo & Tombol Toggle Mobile */
             .sidebar-logo { border: none; padding: 0; display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between; }
             #mobileSidebarToggle { display: block; color: white; font-size: 1.5rem; background: none; border: none; cursor: pointer; padding: 5px; }
-            
-            /* Menu Sidebar (Dropdown) */
             .sidebar-menu { display: none; position: absolute; top: 100%; left: 0; width: 100%; background-color: #2c3e50; z-index: 999; box-shadow: 0 5px 10px rgba(0,0,0,0.2); }
             .sidebar-menu.active { display: block; }
-            
-            /* Konten Utama */
             .admin-main-content { width: 100%; }
-            
-            /* Header Admin (User & Notif) */
             .admin-header { padding: 10px 20px; flex-direction: column-reverse; height: auto; gap: 15px; align-items: flex-start; }
             .header-left { width: 100%; justify-content: space-between; }
-            .admin-header #sidebarToggle { display: none; } /* Hide desktop toggle */
-            
-            /* Notifikasi Dropdown Fix */
+            .admin-header #sidebarToggle { display: none; }
             .notif-dropdown { position: fixed; top: 60px; left: 10px; right: 10px; width: auto; max-width: none; }
         }
 
-        /* Sembunyikan toggle mobile di desktop */
         @media (min-width: 993px) {
             #mobileSidebarToggle { display: none; }
         }
@@ -108,19 +95,32 @@
                 <img src="{{ asset('assets/images/GALA.png') }}" alt="Gala" onerror="this.style.display='none'">
                 <h3 style="color: white; margin:0; font-size: 1.2em;">Bakso Gala</h3>
             </div>
-            {{-- TOMBOL TOGGLE KHUSUS MOBILE --}}
             <button id="mobileSidebarToggle"><i class="fas fa-bars"></i></button>
         </div>
         
         <ul class="sidebar-menu">
+            {{-- 1. DASHBOARD: HANYA OWNER --}}
+            @if(Auth::user()->role == 'owner')
             <li><a href="{{ route('admin.dashboard') }}" class="menu-item {{ Route::is('admin.dashboard') ? 'active' : '' }}"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+            @endif
+
             <li class="menu-header">OPERASIONAL</li>
+            
+            {{-- 2. PESANAN: SEMUA (OWNER & KASIR) --}}
             <li><a href="{{ route('admin.orders.index') }}" class="menu-item {{ Route::is('admin.orders*') ? 'active' : '' }}"><i class="fas fa-receipt"></i> Pesanan</a></li>
+            
+            {{-- 3. MENU: SEMUA (OWNER & KASIR) --}}
             <li><a href="{{ route('admin.menu.index') }}" class="menu-item {{ Route::is('admin.menu*') ? 'active' : '' }}"><i class="fas fa-utensils"></i> Manajemen Menu</a></li>
-            <li><a href="{{ route('admin.promotions.index') }}" class="menu-item {{ Route::is('admin.promotions*') ? 'active' : '' }}"><i class="fas fa-tags"></i> Diskon & Voucher</a></li>
-            <li class="menu-header">ADMINISTRASI</li>
-            <li><a href="{{ route('admin.reports.index') }}" class="menu-item {{ Route::is('admin.reports*') ? 'active' : '' }}"><i class="fas fa-chart-line"></i> Laporan</a></li>
-            <li><a href="{{ route('admin.users.index') }}" class="menu-item {{ Route::is('admin.users*') ? 'active' : '' }}"><i class="fas fa-users"></i> Data Pelanggan</a></li>
+            
+            {{-- 4. FITUR OWNER (PROMO, LAPORAN, USER) --}}
+            @if(Auth::user()->role == 'owner')
+                <li><a href="{{ route('admin.promotions.index') }}" class="menu-item {{ Route::is('admin.promotions*') ? 'active' : '' }}"><i class="fas fa-tags"></i> Diskon & Voucher</a></li>
+                
+                <li class="menu-header">ADMINISTRASI</li>
+                <li><a href="{{ route('admin.reports.index') }}" class="menu-item {{ Route::is('admin.reports*') ? 'active' : '' }}"><i class="fas fa-chart-line"></i> Laporan</a></li>
+                <li><a href="{{ route('admin.users.index') }}" class="menu-item {{ Route::is('admin.users*') ? 'active' : '' }}"><i class="fas fa-users"></i> Data Pelanggan</a></li>
+            @endif
+
             <li class="menu-header">AKUN</li>
             <li>
                 <form action="{{ route('admin.logout') }}" method="POST">
@@ -134,14 +134,11 @@
     <div class="admin-main-content">
         <header class="admin-header">
             <div class="header-left">
-                {{-- TOMBOL TOGGLE KHUSUS DESKTOP --}}
                 <button id="sidebarToggle" class="btn-icon" style="background:none; border:none; font-size:1.2em; cursor:pointer; color:#333; margin-right: 15px;"><i class="fas fa-bars"></i></button>
                 <span class="greeting-text">Halo, {{ Auth::user()->name ?? 'Admin' }}! 👋</span>
             </div>
 
             <div class="header-right">
-                {{-- NOTIFIKASI DROPDOWN --}}
-                {{-- Data pesanan baru diambil via AJAX, disini cukup kerangkanya --}}
                 <div class="notif-wrapper" id="notifWrapper">
                     <div class="btn-notif" onclick="toggleNotifDropdown()">
                         <i class="fas fa-bell"></i>
@@ -153,7 +150,6 @@
                             <h5>Pesanan Masuk</h5>
                         </div>
                         <div class="notif-body">
-                            {{-- Diisi oleh JS --}}
                             <div class="notif-empty"><i class="fas fa-bell-slash"></i><p>Tidak ada notifikasi baru.</p></div>
                         </div>
                         <div class="notif-footer">
@@ -191,9 +187,7 @@
     function handleSidebarToggle(e) {
         e.preventDefault();
         
-        // Cek lebar layar
         if (window.innerWidth <= 992) {
-            // MODE MOBILE: Toggle Menu Dropdown
             const menu = document.querySelector('.sidebar-menu');
             if (menu.style.display === 'block') {
                 menu.style.display = 'none';
@@ -201,7 +195,6 @@
                 menu.style.display = 'block';
             }
         } else {
-            // MODE DESKTOP: Toggle Sidebar Samping
             const sidebar = document.querySelector('.admin-sidebar');
             const mainContent = document.querySelector('.admin-main-content');
             
@@ -237,93 +230,88 @@
     });
 
     // --- 3. AUTO CHECK NEW ORDERS (ALARM BERISIK & AUTO CANCEL) ---
-    let lastGlobalId = {{ \DB::table('orders')->max('id') ?? 0 }};
-    let isAlertOpen = false; // Mencegah alert numpuk
-    const alarmAudio = document.getElementById('alarmSound');
+    // Pastikan ini berjalan di halaman selain login
+    @if(Auth::check())
+        let lastGlobalId = {{ \DB::table('orders')->max('id') ?? 0 }};
+        let isAlertOpen = false; 
+        const alarmAudio = document.getElementById('alarmSound');
 
-    // Pancing interaksi user agar audio bisa jalan
-    document.body.addEventListener('click', function() {
-        if(alarmAudio.paused) {
-            alarmAudio.muted = true;
-            alarmAudio.play().then(() => {
-                alarmAudio.pause();
-                alarmAudio.muted = false;
-                alarmAudio.currentTime = 0;
-            }).catch(e => {});
+        document.body.addEventListener('click', function() {
+            if(alarmAudio.paused) {
+                alarmAudio.muted = true;
+                alarmAudio.play().then(() => {
+                    alarmAudio.pause();
+                    alarmAudio.muted = false;
+                    alarmAudio.currentTime = 0;
+                }).catch(e => {});
+            }
+        }, { once: true });
+
+        function playLoudAlarm() {
+            alarmAudio.currentTime = 0;
+            alarmAudio.volume = 1.0; 
+            alarmAudio.play().catch(error => console.log("Audio gagal play (klik layar dulu):", error));
         }
-    }, { once: true });
 
-    function playLoudAlarm() {
-        alarmAudio.currentTime = 0;
-        alarmAudio.volume = 1.0; 
-        alarmAudio.play().catch(error => console.log("Audio gagal play (klik layar dulu):", error));
-    }
+        function stopLoudAlarm() {
+            alarmAudio.pause();
+            alarmAudio.currentTime = 0;
+        }
+        
+        function checkGlobalOrders() {
+            if(isAlertOpen) return;
 
-    function stopLoudAlarm() {
-        alarmAudio.pause();
-        alarmAudio.currentTime = 0;
-    }
-    
-    function checkGlobalOrders() {
-        if(isAlertOpen) return; // Jangan cek jika alert sedang terbuka
+            fetch('{{ route("admin.orders.checkNew") }}?last_id=' + lastGlobalId)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.has_new) {
+                        lastGlobalId = data.latest_id;
+                        isAlertOpen = true;
+                        
+                        playLoudAlarm();
+                        
+                        const badge = document.getElementById('navBadge');
+                        if(badge) badge.style.display = 'block';
 
-        fetch('{{ route("admin.orders.checkNew") }}?last_id=' + lastGlobalId)
-            .then(response => response.json())
-            .then(data => {
-                if (data.has_new) {
-                    lastGlobalId = data.latest_id;
-                    isAlertOpen = true;
-                    
-                    // 1. Bunyikan Alarm Loop
-                    playLoudAlarm();
-                    
-                    // 2. Tampilkan Badge
-                    const badge = document.getElementById('navBadge');
-                    if(badge) badge.style.display = 'block';
-
-                    // 3. Tentukan Warna Popup
-                    let popupIcon = 'info';
-                    let popupColor = '#3085d6';
-                    
-                    if (data.type === 'success') {
-                        popupIcon = 'success';
-                        popupColor = '#27ae60'; // Hijau Lunas
-                    } else if (data.type === 'warning') {
-                        popupIcon = 'warning';
-                        popupColor = '#f39c12'; // Kuning Belum Lunas
-                    }
-
-                    // 4. Tampilkan Popup Wajib Klik
-                    Swal.fire({
-                        title: data.title,
-                        text: data.message,
-                        icon: popupIcon,
-                        showCancelButton: true,
-                        confirmButtonText: '🔊 MATIKAN ALARM & LIHAT',
-                        cancelButtonText: 'Biarkan Berbunyi',
-                        confirmButtonColor: popupColor,
-                        cancelButtonColor: '#d33',
-                        allowOutsideClick: false, 
-                        allowEscapeKey: false,
-                        backdrop: `rgba(0,0,0,0.8)`
-                    }).then((res) => {
-                        if(res.isConfirmed) {
-                            stopLoudAlarm();
-                            isAlertOpen = false;
-                            window.location.href = "{{ route('admin.orders.index') }}";
-                        } else {
-                            // Jika klik cancel, alert tutup tapi alarm masih bunyi (biar admin notice)
-                            // Kalau mau alarm mati juga, panggil stopLoudAlarm() disini.
-                            isAlertOpen = false;
+                        let popupIcon = 'info';
+                        let popupColor = '#3085d6';
+                        
+                        if (data.type === 'success') {
+                            popupIcon = 'success';
+                            popupColor = '#27ae60';
+                        } else if (data.type === 'warning') {
+                            popupIcon = 'warning';
+                            popupColor = '#f39c12';
                         }
-                    });
-                }
-            })
-            .catch(err => console.error('Silent Check Error:', err));
-    }
 
-    // Cek setiap 5 detik
-    setInterval(checkGlobalOrders, 5000);
+                        Swal.fire({
+                            title: data.title,
+                            text: data.message,
+                            icon: popupIcon,
+                            showCancelButton: true,
+                            confirmButtonText: '🔊 MATIKAN ALARM & LIHAT',
+                            cancelButtonText: 'Biarkan Berbunyi',
+                            confirmButtonColor: popupColor,
+                            cancelButtonColor: '#d33',
+                            allowOutsideClick: false, 
+                            allowEscapeKey: false,
+                            backdrop: `rgba(0,0,0,0.8)`
+                        }).then((res) => {
+                            if(res.isConfirmed) {
+                                stopLoudAlarm();
+                                isAlertOpen = false;
+                                window.location.href = "{{ route('admin.orders.index') }}";
+                            } else {
+                                isAlertOpen = false;
+                            }
+                        });
+                    }
+                })
+                .catch(err => console.error('Silent Check Error:', err));
+        }
+
+        setInterval(checkGlobalOrders, 5000);
+    @endif
 </script>
 
 @stack('scripts')
