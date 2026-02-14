@@ -56,12 +56,15 @@ class CheckoutController extends Controller
 
         $grandTotal = 0;
         $cartItems = [];
+        $collectedNotes = []; // Array untuk menampung semua catatan item
+        
         $allAddons = MenuItem::whereIn('category', ['Tambahan', 'Side Dish', 'Topping'])->get()->keyBy('id');
 
         foreach ($rawCartItems as $item) {
             $unitPrice = $item->menu_price;
             $addonNames = [];
 
+            // Hitung Addons
             if ($item->addons) {
                 $addonIds = json_decode($item->addons, true);
                 if (is_array($addonIds)) {
@@ -77,6 +80,13 @@ class CheckoutController extends Controller
             $subtotal = $unitPrice * $item->quantity;
             $grandTotal += $subtotal;
 
+            // --- LOGIKA MENGAMBIL CATATAN ---
+            // Jika item ini punya catatan, simpan ke array $collectedNotes
+            // Format: "Nama Menu: Catatannya"
+            if (!empty($item->notes)) {
+                $collectedNotes[] = $item->menu_name . ": " . $item->notes;
+            }
+
             $cartItems[] = (object) [
                 'id' => $item->id,
                 'menu_name' => $item->menu_name,
@@ -89,10 +99,14 @@ class CheckoutController extends Controller
             ];
         }
 
+        // Gabungkan semua catatan jadi satu string (dipisah koma)
+        $compiledNotes = implode(",\n", $collectedNotes);
+
         $scannedTable = session('table_number', null);
         $scannedArea  = session('table_area', null);
 
-        return view('checkout.index', compact('cartItems', 'grandTotal', 'scannedTable', 'scannedArea'));
+        // Kirim $compiledNotes ke View
+        return view('checkout.index', compact('cartItems', 'grandTotal', 'scannedTable', 'scannedArea', 'compiledNotes'));
     }
 
     public function store(Request $request)
@@ -168,6 +182,8 @@ class CheckoutController extends Controller
             $order->status = 'new';
             $order->payment_method = 'midtrans';
             $order->payment_status = 'pending';
+            
+            // Simpan catatan global dari form (yang mungkin sudah diedit user)
             $order->order_notes = $request->order_notes;
             $order->save();
 
@@ -220,7 +236,7 @@ class CheckoutController extends Controller
                     'first_name' => $request->customer_name,
                     'phone' => $request->customer_phone,
                 ],
-                // 👇 BARIS INI MENGUNCI PEMBAYARAN KE QRIS SAJA 👇
+                // 👇 AKTIFKAN LAGI QRIS ONLY 👇
                 'enabled_payments' => ['other_qris'], 
             ];
             

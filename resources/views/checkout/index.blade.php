@@ -195,10 +195,11 @@
                 </div>
             </div>
             
-            <div class="form-group">
-                <label class="form-label">Catatan Pesanan (Opsional)</label>
-                <textarea name="order_notes" class="form-input" rows="2" placeholder="Cth: Jangan terlalu pedas..."></textarea>
-            </div>
+<div class="form-group">
+    <label class="form-label">Catatan Pesanan (Opsional)</label>
+    {{-- Tambahkan {{ $compiledNotes ?? '' }} di antara tag textarea --}}
+    <textarea name="order_notes" class="form-input" rows="2" placeholder="Cth: Jangan terlalu pedas...">{{ $compiledNotes ?? '' }}</textarea>
+</div>
         </div>
 
         {{-- 3. METODE PEMBAYARAN --}}
