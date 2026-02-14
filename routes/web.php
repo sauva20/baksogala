@@ -24,6 +24,9 @@ use App\Http\Controllers\Admin\LogController;
 use App\Http\Controllers\Admin\MenuController as AdminMenuController; 
 use App\Http\Controllers\Admin\OrderController as AdminOrderController; 
 
+// --- MIDDLEWARE (PENTING: Agar tidak error saat Seeder) ---
+use App\Http\Middleware\IsOwner; 
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -104,27 +107,23 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
     // -------------------------------------------------------
     // A. AKSES BERSAMA (OWNER & KASIR)
     // -------------------------------------------------------
+    // Kasir HANYA bisa akses Pesanan & Menu
     
-    // 1. Manajemen Pesanan (Kasir butuh ini untuk operasional)
+    // 1. Manajemen Pesanan
     Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
     Route::patch('/orders/{id}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.updateStatus');
     Route::get('/orders/check-new', [AdminOrderController::class, 'checkNewOrders'])->name('orders.checkNew'); // Notifikasi
     Route::get('/orders/{id}/detail', [AdminOrderController::class, 'getOrderDetail'])->name('orders.detail'); // Modal Detail
 
-    // 2. Manajemen Menu (Kasir butuh ini jika stok habis/harga berubah)
+    // 2. Manajemen Menu
     Route::resource('menu', AdminMenuController::class)->except(['create', 'show', 'edit']);
 
 
     // -------------------------------------------------------
     // B. AKSES KHUSUS OWNER (KASIR DILARANG MASUK)
     // -------------------------------------------------------
-    Route::middleware(function ($request, $next) {
-        if (auth()->user()->role !== 'owner') {
-            // Jika bukan owner (misal: kasir), lempar 403 atau redirect
-            abort(403, 'Akses Ditolak. Halaman ini khusus Owner.');
-        }
-        return $next($request);
-    })->group(function () {
+    // Menggunakan Class Middleware 'IsOwner' agar Artisan Seeder tidak error
+    Route::middleware([IsOwner::class])->group(function () {
         
         // Dashboard Statistik
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
