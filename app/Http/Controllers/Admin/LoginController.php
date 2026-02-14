@@ -6,17 +6,20 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
-// 1. PENTING: Import LogController agar bisa dipanggil
 use App\Http\Controllers\Admin\LogController;
 
 class LoginController extends Controller
 {
     public function showLoginForm()
     {
+        // Jika sudah login, cek role dan arahkan sesuai hak akses
         if (Auth::check()) {
-            // Cek jika user sudah login dan role-nya admin/owner
-            if (in_array(auth()->user()->role, ['admin', 'owner'])) {
+            $role = Auth::user()->role;
+            
+            if ($role === 'owner' || $role === 'admin') {
                 return redirect()->route('admin.dashboard');
+            } elseif ($role === 'kasir') {
+                return redirect()->route('admin.orders.index');
             }
         }
         return view('admin.auth.login');
@@ -29,9 +32,8 @@ class LoginController extends Controller
             'password' => 'required'
         ]);
 
-        $input = $request->username;
-        
         // Cek apakah input berupa Email atau Nama biasa
+        $input = $request->username;
         $fieldType = filter_var($input, FILTER_VALIDATE_EMAIL) ? 'email' : 'name';
 
         $credentials = [
@@ -39,34 +41,39 @@ class LoginController extends Controller
             'password' => $request->password
         ];
 
-        // LOGIKA BARU: Pakai Auth::attempt (Otomatis cek ke tabel 'users')
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
 
-            // Ambil data user yang sedang login
             $user = Auth::user();
             $role = $user->role;
 
-            // Cek Role
-            if ($role === 'admin' || $role === 'owner') {
-                
-                // --- 2. LOGGING: Catat Login Berhasil ---
-                LogController::record(
-                    $user->id,              // Siapa yg login
-                    'Login',                // Aksi
-                    'Auth',                 // Modul
-                    'Berhasil masuk ke Dashboard', // Pesan
-                    null,                   // Data changes (kosong)
-                    'info'                  // Level hijau
-                );
-                // ----------------------------------------
+            // DAFTAR ROLE YANG BOLEH MASUK ADMIN PANEL
+            $allowedRoles = ['owner', 'admin', 'kasir'];
 
-                return redirect()->route('admin.dashboard');
+            if (in_array($role, $allowedRoles)) {
+                
+                // --- LOGGING ---
+                LogController::record(
+                    $user->id,
+                    'Login',
+                    'Auth',
+                    "User {$user->name} ({$role}) berhasil masuk.",
+                    null,
+                    'info'
+                );
+
+                // --- REDIRECT SESUAI ROLE ---
+                if ($role === 'owner' || $role === 'admin') {
+                    return redirect()->route('admin.dashboard');
+                } else {
+                    // Kasir tidak punya dashboard, langsung ke pesanan
+                    return redirect()->route('admin.orders.index');
+                }
             }
 
-            // Kalau bukan admin, tendang
+            // Jika role tidak diizinkan (misal: customer biasa mencoba login di admin)
             Auth::logout();
-            return back()->withErrors(['username' => 'Anda bukan Admin!']);
+            return back()->withErrors(['username' => 'Maaf, Anda tidak memiliki akses Admin/Kasir.']);
         }
 
         return back()->withErrors(['username' => 'Akun tidak ditemukan atau Password salah.']);
@@ -74,18 +81,16 @@ class LoginController extends Controller
 
     public function logout(Request $request)
     {
-        // --- 3. LOGGING: Catat Logout (Sebelum session dihancurkan) ---
         if (Auth::check()) {
             LogController::record(
                 Auth::id(),
                 'Logout',
                 'Auth',
-                'Keluar dari sistem (Logout)',
+                'Keluar dari sistem.',
                 null,
                 'info'
             );
         }
-        // -------------------------------------------------------------
 
         Auth::logout();
         $request->session()->invalidate();
