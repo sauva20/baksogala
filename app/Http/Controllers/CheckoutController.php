@@ -23,7 +23,6 @@ class CheckoutController extends Controller
         Config::$is3ds = true;
     }
 
-    // Helper: Ambil item di keranjang
     private function getCartItems()
     {
         $userId = Auth::id();
@@ -56,7 +55,7 @@ class CheckoutController extends Controller
 
         $grandTotal = 0;
         $cartItems = [];
-        $collectedNotes = []; // Array untuk menampung semua catatan item
+        $collectedNotes = []; // Array penampung catatan
         
         $allAddons = MenuItem::whereIn('category', ['Tambahan', 'Side Dish', 'Topping'])->get()->keyBy('id');
 
@@ -64,7 +63,6 @@ class CheckoutController extends Controller
             $unitPrice = $item->menu_price;
             $addonNames = [];
 
-            // Hitung Addons
             if ($item->addons) {
                 $addonIds = json_decode($item->addons, true);
                 if (is_array($addonIds)) {
@@ -80,11 +78,10 @@ class CheckoutController extends Controller
             $subtotal = $unitPrice * $item->quantity;
             $grandTotal += $subtotal;
 
-            // --- LOGIKA MENGAMBIL CATATAN ---
-            // Jika item ini punya catatan, simpan ke array $collectedNotes
-            // Format: "Nama Menu: Catatannya"
+            // --- PERBAIKAN DI SINI ---
+            // Hanya mengambil isi catatan, TANPA nama menu
             if (!empty($item->notes)) {
-                $collectedNotes[] = $item->menu_name . ": " . $item->notes;
+                $collectedNotes[] = $item->notes; 
             }
 
             $cartItems[] = (object) [
@@ -99,19 +96,17 @@ class CheckoutController extends Controller
             ];
         }
 
-        // Gabungkan semua catatan jadi satu string (dipisah koma)
-        $compiledNotes = implode(",\n", $collectedNotes);
+        // Gabungkan catatan dengan koma
+        $compiledNotes = implode(", ", $collectedNotes);
 
         $scannedTable = session('table_number', null);
         $scannedArea  = session('table_area', null);
 
-        // Kirim $compiledNotes ke View
         return view('checkout.index', compact('cartItems', 'grandTotal', 'scannedTable', 'scannedArea', 'compiledNotes'));
     }
 
     public function store(Request $request)
     {
-        // 1. Validasi Input
         $request->validate([
             'customer_name' => 'required|string|max:255',
             'customer_phone' => 'required|string|max:20',
@@ -128,13 +123,11 @@ class CheckoutController extends Controller
                 return redirect()->route('menu.index')->with('error', 'Gagal: Keranjang kosong.');
             }
 
-            // 2. Hitung Total & Load Data Menu
             $calculatedTotal = 0;
             $allMenuItems = MenuItem::all()->keyBy('id'); 
 
             foreach ($rawCartItems as $cItem) {
                 $uPrice = $cItem->menu_price;
-                
                 if ($cItem->addons) {
                     $aIds = json_decode($cItem->addons, true);
                     if (is_array($aIds)) {
@@ -151,7 +144,6 @@ class CheckoutController extends Controller
             $appFee = $calculatedTotal * 0.007; 
             $finalTotal = ceil($calculatedTotal + $appFee);
 
-            // 3. Handle User
             $user = null;
             if (Auth::check()) {
                 $user = Auth::user();
@@ -164,7 +156,6 @@ class CheckoutController extends Controller
                 Auth::login($user);
             }
 
-            // 4. Simpan Order Header
             $order = new Order();
             $order->user_id = $user->id;
             $order->customer_name = $request->customer_name;
@@ -183,11 +174,11 @@ class CheckoutController extends Controller
             $order->payment_method = 'midtrans';
             $order->payment_status = 'pending';
             
-            // Simpan catatan global dari form (yang mungkin sudah diedit user)
+            // Simpan catatan global yang mungkin sudah diedit user di checkout
             $order->order_notes = $request->order_notes;
+            
             $order->save();
 
-            // 5. Simpan Order Detail
             foreach ($rawCartItems as $item) {
                 $detail = new OrderDetail();
                 $detail->order_id = $order->id;
@@ -212,6 +203,7 @@ class CheckoutController extends Controller
                 $detail->price = $unitPrice;
                 $detail->subtotal = $unitPrice * $item->quantity;
                 
+                // Simpan juga catatan item spesifik ke database detail
                 $finalNote = $item->notes ?? '';
                 if (!empty($addonNamesArray)) {
                     $addonString = "Topping: " . implode(", ", $addonNamesArray);
@@ -226,7 +218,6 @@ class CheckoutController extends Controller
                 $detail->save();
             }
 
-            // 6. Request Snap Token (DENGAN QRIS ONLY)
             $params = [
                 'transaction_details' => [
                     'order_id' => $order->id . '-' . time(),
@@ -236,15 +227,13 @@ class CheckoutController extends Controller
                     'first_name' => $request->customer_name,
                     'phone' => $request->customer_phone,
                 ],
-                // 👇 AKTIFKAN LAGI QRIS ONLY 👇
-                'enabled_payments' => ['other_qris'], 
+                'enabled_payments' => ['other_qris'], // QRIS ONLY
             ];
             
             $snapToken = Snap::getSnapToken($params);
             $order->snap_token = $snapToken;
             $order->save();
 
-            // 7. Bersihkan Cart & Session
             DB::table('cart_items')->where(function($query) use ($user) {
                 $query->where('user_id', $user->id)
                       ->orWhere('session_id', session()->getId());

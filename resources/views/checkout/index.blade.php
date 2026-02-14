@@ -197,8 +197,8 @@
             
 <div class="form-group">
     <label class="form-label">Catatan Pesanan (Opsional)</label>
-    {{-- Tambahkan {{ $compiledNotes ?? '' }} di antara tag textarea --}}
-    <textarea name="order_notes" class="form-input" rows="2" placeholder="Cth: Jangan terlalu pedas...">{{ $compiledNotes ?? '' }}</textarea>
+    {{-- $compiledNotes berisi gabungan catatan dari keranjang tanpa nama menu --}}
+    <textarea name="order_notes" class="form-input" rows="2" placeholder="Contoh: Jangan pakai bawang, Pakai baju merah...">{{ $compiledNotes ?? '' }}</textarea>
 </div>
         </div>
 
