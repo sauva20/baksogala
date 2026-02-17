@@ -28,15 +28,15 @@
                 <div class="timeline-item">
                     <div class="timeline-icon"><i class="fas fa-seedling"></i></div>
                     <div class="timeline-content">
-                        <h4>2020 - Titik Awal</h4>
+                        <h4>2023 - Titik Awal</h4>
                         <p>Bakso Gala pertama kali didirikan dengan ide yang di kembangkan dari bakmie cap gala, dengan fokus pada bakso kuah klasik yang sederhana namun kaya rasa.</p>
                     </div>
                 </div>
                 <div class="timeline-item">
                     <div class="timeline-icon"><i class="fas fa-fire"></i></div>
                     <div class="timeline-content">
-                        <h4>2024 - Inovasi Bakso</h4>
-                        <p>Kami memperkenalkan inovasi baru: **Bakso Cap Gala** dengan isian daging yang khas, yang langsung menjadi favorit pelanggan dan membuat nama kami semakin dikenal.</p>
+                        <h4>2025 - Inovasi Bakso</h4>
+                        <p>Febuari memperkenalkan inovasi baru: **Bakso Cap Gala** dengan isian daging yang khas, yang langsung menjadi favorit pelanggan dan membuat nama kami semakin dikenal.</p>
                     </div>
                 </div>
                 <div class="timeline-item">
