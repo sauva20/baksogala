@@ -19,13 +19,13 @@ use App\Http\Controllers\Admin\PromotionController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\LogController;
-use App\Http\Controllers\Admin\ReviewController; // <--- TAMBAHKAN INI
+use App\Http\Controllers\Admin\ReviewController; 
 
 // --- ALIAS CONTROLLER ADMIN ---
 use App\Http\Controllers\Admin\MenuController as AdminMenuController; 
 use App\Http\Controllers\Admin\OrderController as AdminOrderController; 
 
-// --- MIDDLEWARE (PENTING: Agar tidak error saat Seeder) ---
+// --- MIDDLEWARE ---
 use App\Http\Middleware\IsOwner; 
 
 /*
@@ -94,6 +94,9 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 // ====================================================
 Route::middleware(['auth'])->group(function () {
     // Route member bisa ditambahkan di sini
+    
+    // [PERBAIKAN POSISI] Disimpan di sini agar Kasir & Owner bisa akses
+    Route::post('/update-fcm-token', [HomeController::class, 'updateToken'])->name('update.fcm-token');
 });
 
 
@@ -125,7 +128,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
     // 2. Manajemen Menu
     Route::resource('menu', AdminMenuController::class)->except(['create', 'show', 'edit']);
 
-    // 3. Manajemen Review (Monitoring Homepage) <--- TAMBAHKAN INI
+    // 3. Manajemen Review (Monitoring Homepage)
     Route::get('/reviews', [ReviewController::class, 'index'])->name('reviews.index');
     Route::patch('/reviews/{review}/toggle', [ReviewController::class, 'toggleFeatured'])->name('reviews.toggle');
     Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
@@ -145,7 +148,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
             $totalMejaPerArea = 20; 
             return view('admin.print_qr', compact('areas', 'totalMejaPerArea'));
         })->name('qr.generate');
-
+        
         // Manajemen Promosi
         Route::resource('promotions', PromotionController::class);
         
@@ -158,6 +161,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
         // Manajemen User (Data Pelanggan & Staff)
         Route::get('/users', [UserController::class, 'index'])->name('users.index');
         Route::get('/users/{id}', [UserController::class, 'show'])->name('users.show');
+        
+        // [PERBAIKAN] Route update-fcm-token SUDAH DIPINDAHKAN KE ATAS (AREA MEMBER)
+        // Agar tidak error permission untuk kasir dan namanya sesuai request.
     });
 
 });

@@ -29,7 +29,6 @@ class CallbackController extends Controller
             $orderId = $notif->order_id; // Contoh: "12-1738500000"
             
             // 2. Ambil ID Order Asli (Buang angka unik di belakang strip)
-            // Kita butuh angka "12" nya saja
             $realOrderId = explode('-', $orderId)[0];
             
             // 3. Cari Order di Database
@@ -46,11 +45,23 @@ class CallbackController extends Controller
 
             // 4. Update Status Berdasarkan Laporan Midtrans
             if ($transaction == 'capture' || $transaction == 'settlement') {
-                // STATUS: SUKSES / LUNAS
+                
+                // A. UPDATE STATUS JADI LUNAS
                 $order->update([
                     'payment_status' => 'paid',
                     'status' => 'process' // Langsung ubah jadi diproses
                 ]);
+
+                // ==========================================================
+                // B. [TAMBAHAN] BUNYIKAN NOTIFIKASI KE OWNER/KASIR
+                // ==========================================================
+                // Panggil fungsi yang sudah kita buat di Controller.php utama
+                $this->sendNotifToAdmin(
+                    "Pesanan Masuk #{$order->id}", 
+                    "Lunas! Pesanan senilai Rp " . number_format($order->total_price) . " telah dibayar via Midtrans."
+                );
+                // ==========================================================
+
             } 
             else if ($transaction == 'pending') {
                 // STATUS: MENUNGGU
