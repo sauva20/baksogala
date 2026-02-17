@@ -20,10 +20,8 @@
             <div class="footer-col">
                 <h3>Hubungi Kami</h3>
                 <p>Jl. Otto Iskandardinata No.115, Karanganyar, Kec. Subang, Kabupaten Subang, Jawa Barat 41211</p>
-                <p>Telepon: (022) 123-xxx</p>
-                <p>Email: info@baksogala.com</p>
-                <p>Jam Buka: Senin - Jumat, 11.00 - 20.00 WIB</p>
-                <p>Jam Buka: Sabtu & Minggu, 11.30 - 21.00 WIB</p>
+                <p>Telepon: +62-812-3456-7890</p>
+                <p>Email: baksocapgala@gmail.com</p>
             </div>
             <div class="footer-col">
                 <h3>Ikuti Kami</h3>
