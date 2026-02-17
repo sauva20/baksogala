@@ -228,7 +228,7 @@
                         <td data-label="STATUS TAMPIL">
                             @if($review->is_featured)
                                 <span class="badge" style="background: #dcfce7; color: #166534; border-radius: 50px; padding: 5px 12px; font-size: 0.7rem;">
-                                    <i class="fas fa-check-circle mr-1"></i> FEATURED
+                                    <i class="fas fa-check-circle mr-1"></i> Aktif
                                 </span>
                             @else
                                 <span class="badge" style="background: #f1f5f9; color: #64748b; border-radius: 50px; padding: 5px 12px; font-size: 0.7rem;">
