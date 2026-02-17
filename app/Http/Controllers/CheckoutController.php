@@ -10,7 +10,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Http; // Untuk nembak API Firebase
+use Illuminate\Support\Facades\Http; // Wajib untuk nembak API Firebase & Telegram
 use Midtrans\Config;
 use Midtrans\Snap;
 use Carbon\Carbon;
@@ -213,8 +213,9 @@ class CheckoutController extends Controller
             $order->order_notes = $request->order_notes;
             $order->save();
 
-            // --- TRIGGER NOTIFIKASI KE ADMIN DISINI ---
+            // --- KIRIM NOTIFIKASI BERLAPIS (FIREBASE + TELEGRAM) ---
             $this->sendNotificationToAdmin($order);
+            $this->sendTelegramNotif($order);
 
             foreach ($rawCartItems as $item) {
                 $detail = new OrderDetail();
@@ -287,11 +288,36 @@ class CheckoutController extends Controller
     }
 
     /**
-     * FUNGSI KIRIM NOTIFIKASI KE ADMIN VIA FIREBASE (ANTI-ZONK)
+     * FUNGSI 1: KIRIM TELEGRAM BOT (ANTI-GAGAL)
+     */
+    private function sendTelegramNotif($order)
+    {
+        $token = env('TELEGRAM_BOT_TOKEN');
+        $chatId = env('TELEGRAM_CHAT_ID');
+
+        if (!$token || !$chatId) return;
+
+        $message = "🔔 *ADA PESANAN BARU!* 🔔\n\n";
+        $message .= "🆔 *Order ID:* #{$order->id}\n";
+        $message .= "👤 *Pelanggan:* {$order->customer_name}\n";
+        $message .= "📍 *Lokasi:* {$order->shipping_address}\n";
+        $message .= "🍲 *Tipe:* {$order->order_type}\n";
+        $message .= "💰 *Total:* Rp " . number_format($order->total_price, 0, ',', '.') . "\n";
+        $message .= "📝 *Catatan:* " . ($order->order_notes ?? '-') . "\n\n";
+        $message .= "✅ *Segera cek dashboard admin!*";
+
+        Http::post("https://api.telegram.org/bot{$token}/sendMessage", [
+            'chat_id' => $chatId,
+            'text' => $message,
+            'parse_mode' => 'Markdown'
+        ]);
+    }
+
+    /**
+     * FUNGSI 2: KIRIM FIREBASE (WEB PUSH)
      */
     private function sendNotificationToAdmin($order)
     {
-        // Ambil token fcm dari user role owner/admin yang sedang aktif
         $tokens = User::whereIn('role', ['owner', 'admin'])
                       ->whereNotNull('fcm_token')
                       ->pluck('fcm_token')
@@ -306,15 +332,15 @@ class CheckoutController extends Controller
             "registration_ids" => $tokens,
             "notification" => [
                 "title" => "🔔 PESANAN BARU MASUK!",
-                "body" => "Order #{$order->id} dari {$order->customer_name}. Segera cek dapur!",
+                "body" => "Order #{$order->id} dari {$order->customer_name}. Cek sekarang!",
                 "icon" => asset('assets/images/GALA.png'),
                 "sound" => "default",
-                "click_action" => url('/admin/orders') // Biar pas diklik langsung buka page ini
+                "click_action" => url('/admin/orders')
             ],
             "data" => [
                 "order_id" => $order->id
             ],
-            "priority" => "high", // <--- WAJIB: Supaya notif muncul walau browser ditutup/background
+            "priority" => "high",
             "content_available" => true
         ];
 
