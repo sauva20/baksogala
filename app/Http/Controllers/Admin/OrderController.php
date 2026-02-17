@@ -47,7 +47,6 @@ class OrderController extends Controller
         $order->status = $request->status;
         
         // Logic Tambahan: Jika status diubah jadi 'ready' atau 'completed'
-        // Kita asumsikan pesanan sudah pasti lunas (aman untuk cash/manual)
         if (in_array($request->status, ['ready', 'completed'])) {
             $order->payment_status = 'paid';
         }
@@ -57,57 +56,50 @@ class OrderController extends Controller
         return redirect()->back()->with('success', 'Status pesanan berhasil diperbarui!');
     }
 
-    // --- API: CEK PESANAN BARU (KHUSUS YANG SUDAH BAYAR) ---
-    // Dipanggil oleh Javascript (setInterval) setiap beberapa detik
+    // --- API: CEK PESANAN BARU (UNTUK TEST NOTIFIKASI MASUK) ---
     public function checkNewOrders(Request $request)
     {
         $clientLastId = $request->input('last_id', 0);
 
-        // 1. LOGIKA AUTO-CANCEL (Bersihkan Data Lama)
-        // Batalkan pesanan yang statusnya 'new'/'pending' DAN belum bayar > 10 menit
+        // 1. LOGIKA AUTO-CANCEL (Tetap dibiarkan untuk kebersihan data)
         Order::where('status', 'new')
-             ->where('payment_status', 'pending') // Atau 'unpaid'
+             ->where('payment_status', 'pending')
              ->where('created_at', '<', Carbon::now()->subMinutes(10))
              ->update(['status' => 'cancelled']);
 
-        // 2. CEK PESANAN BARU (HANYA YANG SUDAH PAID)
-        // Ambil 1 pesanan dengan ID > last_id DAN payment_status = 'paid'
+        // 2. CEK PESANAN BARU (TRIGGER SAAT MASUK)
+        // Kita hapus filter ->where('payment_status', 'paid') agar notif langsung bunyi
         $newOrder = Order::where('id', '>', $clientLastId)
-            ->where('payment_status', 'paid') // <--- FILTER UTAMA: HANYA YANG SUDAH BAYAR
-            ->where('status', '!=', 'cancelled')
-            ->orderBy('id', 'asc') // Ambil yang terlama dulu agar urut
+            ->where('status', '!=', 'cancelled') // Jangan beri notif jika sudah batal
+            ->orderBy('id', 'asc')
             ->first();
 
         if ($newOrder) {
-            // Siapkan Data untuk SweetAlert di Frontend
             return response()->json([
                 'has_new'   => true, 
                 'latest_id' => $newOrder->id,
-                'type'      => 'success',  // Warna Hijau
-                'title'     => '💰 PESANAN LUNAS!',
-                'message'   => "Pesanan #{$newOrder->id} dari {$newOrder->customer_name} masuk & SUDAH DIBAYAR. Siapkan sekarang!"
+                'type'      => 'info',  // Warna Biru (Info) untuk pesanan masuk
+                'title'     => '🔔 PESANAN BARU!',
+                'message'   => "Pesanan #{$newOrder->id} dari {$newOrder->customer_name} baru saja masuk. Cek detailnya!"
             ]);
         }
 
-        // Tidak ada pesanan baru yang valid
         return response()->json(['has_new' => false]);
     }
 
     // --- API: POPUP DETAIL MODAL ---
     public function getOrderDetail($id)
     {
-        // Load relasi orderDetails dan menuItem untuk nama makanan
         $order = Order::with(['orderDetails.menuItem'])->find($id);
         
         if(!$order) {
             return response()->json(['status' => 'error', 'message' => 'Pesanan tidak ditemukan'], 404);
         }
 
-        // Format data item agar mudah dibaca JS
         $items = $order->orderDetails->map(function($detail) {
             return [
                 'quantity'   => $detail->quantity,
-                'menu_name'  => $detail->menuItem->name ?? 'Item Dihapus', // Handle jika menu dihapus
+                'menu_name'  => $detail->menuItem->name ?? 'Item Dihapus',
                 'price'      => number_format($detail->price, 0, ',', '.'),
                 'subtotal'   => number_format($detail->subtotal, 0, ',', '.'),
                 'item_notes' => $detail->item_notes ?? '-'
@@ -120,10 +112,10 @@ class OrderController extends Controller
                 'id' => $order->id,
                 'customer_name' => $order->customer_name,
                 'customer_phone' => $order->customer_phone,
-                'shipping_address' => $order->shipping_address, // Untuk Lokasi Meja
+                'shipping_address' => $order->shipping_address,
                 'table_number' => $order->table_number ?? '-', 
                 'status' => ucfirst($order->status),
-                'payment_status' => ucfirst($order->payment_status), // Penting untuk badge LUNAS di modal
+                'payment_status' => ucfirst($order->payment_status),
                 'total_price' => number_format($order->total_price, 0, ',', '.'),
                 'created_at' => $order->created_at->format('d M Y H:i'),
                 'notes' => $order->order_notes ?? '-'
@@ -131,5 +123,4 @@ class OrderController extends Controller
             'items' => $items
         ]);
     }
-    
 }
