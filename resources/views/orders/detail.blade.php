@@ -5,6 +5,8 @@
 @section('styles')
 <link rel="icon" href="{{ asset('assets/images/GALA.png') }}" type="image/png">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
 <style>
     :root { --primary: #B1935B; --navy: #2F3D65; --bg: #F4F6F9; --text: #333; }
     body { background-color: var(--bg); color: var(--text); padding-bottom: 50px; }
@@ -36,7 +38,7 @@
     .step.completed .step-icon { background: var(--navy); color: white; }
     .step.completed .step-label { color: var(--navy); }
 
-    /* Other Styles */
+    /* Receipt Styles */
     .receipt-card { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid #eee; }
     .receipt-header { background: var(--navy); color: white; padding: 20px; text-align: center; }
     .receipt-title { margin: 0; font-size: 1.1rem; font-weight: 700; }
@@ -48,16 +50,34 @@
     .total-section { padding: 20px; background: #fcfcfc; }
     .total-row { display: flex; justify-content: space-between; font-weight: 700; font-size: 1.1rem; color: var(--navy); }
 
+    /* Review Styles */
     .review-card { background: white; border-radius: 15px; padding: 25px; margin-top: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.03); border: 1px solid #eee; text-align: center; }
     .rate { display: inline-block; height: 46px; padding: 0 10px; }
     .rate:not(:checked) > input { position:absolute; top:-9999px; }
     .rate:not(:checked) > label { float:right; width:1em; overflow:hidden; white-space:nowrap; cursor:pointer; font-size:35px; color:#ddd; }
     .rate:not(:checked) > label:before { content: '★ '; }
     .rate > input:checked ~ label { color: #ffc700; }
+    .rate:not(:checked) > label:hover, .rate:not(:checked) > label:hover ~ label { color: #deb217; }
+    .rate > input:checked + label:hover, .rate > input:checked + label:hover ~ label, .rate > input:checked ~ label:hover, .rate > input:checked ~ label:hover ~ label, .rate > label:hover ~ input:checked ~ label { color: #c59b08; }
+
+    /* AI Button Styles */
+    .ai-wrapper { position: relative; margin-bottom: 15px; }
+    .form-control { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; margin-bottom: 5px;}
+    
+    .btn-ai-polish { 
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+        color: white; border: none; padding: 6px 12px; border-radius: 20px; 
+        font-size: 0.75rem; font-weight: 600; cursor: pointer; 
+        display: flex; align-items: center; gap: 5px; 
+        position: absolute; bottom: 15px; right: 10px; z-index: 10; 
+        box-shadow: 0 4px 10px rgba(118, 75, 162, 0.3); transition: transform 0.2s; 
+    }
+    .btn-ai-polish:hover { transform: scale(1.05); }
+    .ai-loading { display: none; margin-left: 5px; }
     
     .btn-submit-review { width: 100%; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 10px; font-weight: 700; cursor: pointer; transition: 0.3s; margin-top: 10px;}
-    .form-control { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px; font-family: inherit;}
     
+    /* Waiting Message */
     .waiting-message { text-align: center; padding: 30px; background: white; border-radius: 15px; margin-top: 20px; border: 1px solid #eee; }
     .waiting-icon { font-size: 3rem; color: #ccc; margin-bottom: 15px; animation: pulse 2s infinite; }
     
@@ -76,11 +96,10 @@
     {{-- 1. STATUS TRACKER (STEPPER) --}}
     @php
         $s = $order->status;
-        // Logic class stepper
-        $step1 = ($s == 'new' || $s == 'preparing' || $s == 'ready' || $s == 'completed') ? 'completed' : 'active'; // Bayar (Pending -> Process)
-        $step2 = ($s == 'preparing' || $s == 'ready' || $s == 'completed') ? 'completed' : ($s == 'process' ? 'active' : ''); // Dimasak
-        $step3 = ($s == 'ready' || $s == 'completed') ? 'completed' : ($s == 'preparing' ? 'active' : ''); // Siap
-        $step4 = ($s == 'completed') ? 'completed' : ($s == 'ready' ? 'active' : ''); // Selesai
+        $step1 = ($s == 'new' || $s == 'preparing' || $s == 'ready' || $s == 'completed') ? 'completed' : 'active';
+        $step2 = ($s == 'preparing' || $s == 'ready' || $s == 'completed') ? 'completed' : ($s == 'process' ? 'active' : '');
+        $step3 = ($s == 'ready' || $s == 'completed') ? 'completed' : ($s == 'preparing' ? 'active' : '');
+        $step4 = ($s == 'completed') ? 'completed' : ($s == 'ready' ? 'active' : '');
     @endphp
 
     <div class="status-tracker">
@@ -156,7 +175,6 @@
                 
                 <form action="{{ route('orders.review.store', $order->id) }}" method="POST" enctype="multipart/form-data">
                     @csrf
-                    {{-- Error Message --}}
                     @if($errors->any())
                         <div style="background: #ffebee; color: red; padding: 10px; font-size: 0.8rem; margin-bottom: 10px; border-radius: 5px;">{{ $errors->first() }}</div>
                     @endif
@@ -171,7 +189,16 @@
                         </div>
                     </div>
 
-                    <textarea name="comment" class="form-control" rows="3" placeholder="Tulis ulasanmu disini..." required></textarea>
+                    {{-- FITUR AI PERCANTIK KATA DI SINI --}}
+                    <div class="ai-wrapper">
+                        <textarea id="reviewComment" name="comment" class="form-control" rows="4" placeholder="Tulis ulasan kasar, nanti AI yang perbaiki... (Cth: 'Enak banget baksonya')" required></textarea>
+                        
+                        <button type="button" class="btn-ai-polish" onclick="polishWithAI()">
+                            <i class="fas fa-magic"></i> 
+                            <span>Perindah Kata</span>
+                            <i class="fas fa-spinner fa-spin ai-loading"></i>
+                        </button>
+                    </div>
                     
                     <div style="text-align: left; margin-bottom: 10px;">
                         <label style="font-size: 0.8rem; font-weight: bold;">Foto (Opsional)</label>
@@ -213,26 +240,67 @@
     @if(session('error')) Swal.fire('Gagal', "{{ session('error') }}", 'error'); @endif
 
     // --- 2. SCRIPT AUTO RELOAD (POLLING) ---
-    // Hanya jalan jika status BELUM 'completed' atau 'cancelled'
     const statusSekarang = document.getElementById('currentStatus').value;
     
     if (statusSekarang !== 'completed' && statusSekarang !== 'cancelled') {
-        
         console.log("Monitoring status pesanan...");
-        
         setInterval(() => {
             fetch("{{ route('orders.status', $order->id) }}")
                 .then(response => response.json())
                 .then(data => {
-                    // Jika status di database BEDA dengan status di halaman saat ini
                     if (data.status !== statusSekarang) {
                         console.log("Status berubah! Reloading...");
-                        // Reload halaman agar tampilan stepper berubah & form review muncul
                         location.reload(); 
                     }
                 })
                 .catch(err => console.error("Gagal cek status:", err));
-        }, 5000); // Cek setiap 5 detik
+        }, 5000); 
+    }
+
+    // --- 3. LOGIKA AI PERCANTIK KATA ---
+    function polishWithAI() {
+        const commentBox = document.getElementById('reviewComment');
+        const text = commentBox.value.trim();
+        const btn = document.querySelector('.btn-ai-polish');
+        const loadingIcon = document.querySelector('.ai-loading');
+        const btnText = btn.querySelector('span');
+
+        if (text.length < 5) {
+            Swal.fire('Ups!', 'Tulis ulasan kasar dulu minimal 5 huruf, nanti AI yang perbaiki.', 'warning');
+            return;
+        }
+
+        btn.disabled = true;
+        btnText.innerText = "Sedang berpikir...";
+        loadingIcon.style.display = "inline-block";
+
+        fetch('{{ route("review.polish") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ text: text })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                commentBox.value = data.text;
+                commentBox.style.borderColor = "#667eea";
+                setTimeout(() => commentBox.style.borderColor = "#ddd", 1000);
+            } else {
+                Swal.fire('Gagal', data.message, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire('Error', 'Terjadi kesalahan koneksi.', 'error');
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btnText.innerText = "Perindah Kata";
+            loadingIcon.style.display = "none";
+        });
     }
 </script>
 @endpush
