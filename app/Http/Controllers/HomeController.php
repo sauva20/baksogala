@@ -3,13 +3,14 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\User;
+use App\Models\User; // Import Model User
 
 class HomeController extends Controller
 {
     /**
      * Create a new controller instance.
-     * Middleware 'auth' memastikan hanya user login yang bisa akses.
+     *
+     * @return void
      */
     public function __construct()
     {
@@ -17,24 +18,36 @@ class HomeController extends Controller
     }
 
     /**
-     * Fungsi untuk menyimpan Token FCM dari HP/Browser User ke Database
+     * Show the application dashboard.
+     *
+     * @return \Illuminate\Contracts\Support\Renderable
+     */
+    public function index()
+    {
+        return view('home');
+    }
+
+    /**
+     * FUNGSI KHUSUS MENYIMPAN TOKEN DARI AJAX
+     * Ini yang dicari oleh route /update-fcm-token
      */
     public function updateToken(Request $request)
     {
         try {
-            // Validasi data
-            $request->validate([
-                'token' => 'required|string'
-            ]);
-
-            // Simpan token ke user yang sedang login saat ini
+            // Update token milik user yang sedang login
             $request->user()->update([
                 'fcm_token' => $request->token
             ]);
 
-            return response()->json(['success' => true, 'message' => 'Token updated successfully']);
+            return response()->json([
+                'success' => true, 
+                'message' => 'Token berhasil disimpan!'
+            ]);
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Error updating token'], 500);
+            return response()->json([
+                'success' => false, 
+                'message' => 'Gagal simpan: ' . $e->getMessage()
+            ], 500);
         }
     }
 }
