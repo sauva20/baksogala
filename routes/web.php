@@ -67,6 +67,10 @@ Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.s
 Route::get('/pesanan/{id}', [OrderController::class, 'show'])->name('orders.show');
 Route::get('/pesanan/{id}/detail', [OrderController::class, 'detail'])->name('orders.detail');
 
+// --- TAMBAHKAN INI ---
+Route::get('/pesanan/{id}/cetak', [OrderController::class, 'cetakStruk'])->name('orders.cetak');
+// ...
+
 // -----------------------------------------------------------
 // FITUR REVIEW & AI
 // -----------------------------------------------------------

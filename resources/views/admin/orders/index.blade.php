@@ -226,6 +226,7 @@
             </div>
         </div>
         <div class="modal-footer">
+            {{-- Tombol Cetak Struk (DIARAHKAN KE ROUTE KHUSUS) --}}
             <a href="#" id="modalPrintLink" target="_blank" class="btn-icon btn-detail" style="width: auto; padding: 0 15px; text-decoration: none; font-size: 0.9em; height: 35px; line-height: 35px;">
                 <i class="fas fa-print"></i> Cetak Struk
             </a>
@@ -254,7 +255,9 @@
                     document.getElementById("modalCustPhone").innerText = order.customer_phone;
                     document.getElementById("modalTable").innerText = order.shipping_address;
                     document.getElementById("modalNote").innerText = order.notes || '-';
-                    document.getElementById("modalPrintLink").href = `/pesanan/${order.id}`;
+                    
+                    // --- PERBAIKAN LINK CETAK (MENUJU ROUTE /CETAK) ---
+                    document.getElementById("modalPrintLink").href = `/pesanan/${order.id}/cetak`;
                     
                     // --- FIX BUG STATUS PEMBAYARAN DI MODAL (UPDATED) ---
                     const badge = document.getElementById("modalPaymentStatusBadge");
