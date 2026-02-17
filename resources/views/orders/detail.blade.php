@@ -1,53 +1,67 @@
 @extends('layouts.app')
 
-@section('title', 'Detail Pesanan & Review')
+@section('title', 'Detail Pesanan #' . $order->id)
 
 @section('styles')
 <link rel="icon" href="{{ asset('assets/images/GALA.png') }}" type="image/png">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-{{-- Gunakan CSS yang sama seperti sebelumnya --}}
 <style>
-    /* ... (Paste CSS Anda yang tadi di sini) ... */
     :root { --primary: #B1935B; --navy: #2F3D65; --bg: #F4F6F9; --text: #333; }
     body { background-color: var(--bg); color: var(--text); padding-bottom: 50px; }
     footer { display: none !important; }
+    
     .detail-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
     .btn-back { text-decoration: none; color: #666; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: 0.3s; }
-    .btn-back:hover { color: var(--primary); }
-    .btn-print { background: white; border: 1px solid #ddd; color: var(--navy); padding: 8px 15px; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-    .receipt-card { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid #eee; position: relative; }
-    .receipt-card::after { content: ""; position: absolute; bottom: 0; left: 0; right: 0; height: 10px; background: linear-gradient(135deg, transparent 50%, var(--bg) 50%), linear-gradient(45deg, var(--bg) 50%, transparent 50%); background-size: 20px 20px; }
-    .receipt-header { background: var(--navy); color: white; padding: 25px 20px; text-align: center; }
-    .receipt-title { margin: 0; font-size: 1.2rem; font-weight: 700; letter-spacing: 1px; }
-    .receipt-subtitle { font-size: 0.85rem; opacity: 0.8; margin-top: 5px; }
-    .order-status-badge { display: inline-block; padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; margin-top: 10px; background: rgba(255,255,255,0.2); color: white; }
-    .receipt-body { padding: 25px 20px 40px 20px; }
-    .item-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.95rem; }
-    .item-name { font-weight: 600; color: #444; }
-    .item-qty { color: #888; font-size: 0.85rem; margin-right: 5px; }
-    .item-note { font-size: 0.8rem; color: #999; font-style: italic; margin-top: 2px; }
-    .item-price { font-weight: 600; color: #333; }
-    .summary-section { margin-top: 20px; padding-top: 15px; border-top: 2px dashed #eee; }
-    .summary-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem; color: #666; }
-    .summary-total { display: flex; justify-content: space-between; margin-top: 15px; padding-top: 15px; border-top: 2px solid #333; font-size: 1.2rem; font-weight: 800; color: var(--primary); }
+    
+    /* --- STATUS TRACKER (STEPPER) --- */
+    .status-tracker {
+        background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.03); display: flex; justify-content: space-between; align-items: center; position: relative;
+    }
+    .status-tracker::before {
+        content: ''; position: absolute; top: 35%; left: 40px; right: 40px; height: 3px; background: #eee; z-index: 0;
+    }
+    .step { position: relative; z-index: 1; text-align: center; width: 25%; }
+    .step-icon {
+        width: 35px; height: 35px; background: #eee; border-radius: 50%; margin: 0 auto 8px;
+        display: flex; align-items: center; justify-content: center; color: #999; font-size: 0.9rem;
+        transition: 0.3s; border: 3px solid white;
+    }
+    .step-label { font-size: 0.75rem; color: #999; font-weight: 600; }
+    
+    /* Active Step */
+    .step.active .step-icon { background: var(--primary); color: white; box-shadow: 0 0 0 3px #fff8e1; }
+    .step.active .step-label { color: var(--primary); }
+    /* Completed Step */
+    .step.completed .step-icon { background: var(--navy); color: white; }
+    .step.completed .step-label { color: var(--navy); }
+
+    /* Other Styles */
+    .receipt-card { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid #eee; }
+    .receipt-header { background: var(--navy); color: white; padding: 20px; text-align: center; }
+    .receipt-title { margin: 0; font-size: 1.1rem; font-weight: 700; }
+    
+    .item-row { display: flex; justify-content: space-between; padding: 12px 20px; border-bottom: 1px dashed #eee; font-size: 0.9rem; }
+    .item-name { font-weight: 600; color: #444; display:block;}
+    .item-notes { font-size: 0.75rem; color: #888; font-style: italic; }
+    
+    .total-section { padding: 20px; background: #fcfcfc; }
+    .total-row { display: flex; justify-content: space-between; font-weight: 700; font-size: 1.1rem; color: var(--navy); }
+
     .review-card { background: white; border-radius: 15px; padding: 25px; margin-top: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.03); border: 1px solid #eee; text-align: center; }
     .rate { display: inline-block; height: 46px; padding: 0 10px; }
     .rate:not(:checked) > input { position:absolute; top:-9999px; }
     .rate:not(:checked) > label { float:right; width:1em; overflow:hidden; white-space:nowrap; cursor:pointer; font-size:35px; color:#ddd; }
     .rate:not(:checked) > label:before { content: '★ '; }
     .rate > input:checked ~ label { color: #ffc700; }
-    .rate:not(:checked) > label:hover, .rate:not(:checked) > label:hover ~ label { color: #deb217; }
-    .rate > input:checked + label:hover, .rate > input:checked + label:hover ~ label, .rate > input:checked ~ label:hover, .rate > input:checked ~ label:hover ~ label, .rate > label:hover ~ input:checked ~ label { color: #c59b08; }
-    .form-control { border-radius: 10px; border: 1px solid #ddd; padding: 12px; width: 100%; font-family: inherit; }
-    .btn-submit-review { width: 100%; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 10px; font-weight: 700; cursor: pointer; transition: 0.3s; }
-    .btn-submit-review:hover { background: #967d4d; }
-    .ai-wrapper { position: relative; margin-bottom: 15px; }
-    .btn-ai-polish { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 8px 15px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 5px; position: absolute; bottom: 10px; right: 10px; z-index: 10; box-shadow: 0 4px 10px rgba(118, 75, 162, 0.3); transition: transform 0.2s; }
-    .btn-ai-polish:hover { transform: scale(1.05); }
-    .ai-loading { display: none; margin-left: 5px; }
-    .fa-spin { animation: fa-spin 1s infinite linear; }
-    @keyframes fa-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    @media print { body { background: white; padding: 0; } .detail-nav, .review-card, footer { display: none !important; } .container { max-width: 100%; padding: 0; margin: 0; } .receipt-card { box-shadow: none; border: none; border-radius: 0; } .receipt-card::after { display: none; } .receipt-header { color: black; background: white; border-bottom: 2px solid black; padding: 10px 0; } .order-status-badge { color: black; border: 1px solid black; } .summary-total { color: black; } }
+    
+    .btn-submit-review { width: 100%; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 10px; font-weight: 700; cursor: pointer; transition: 0.3s; margin-top: 10px;}
+    .form-control { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px; font-family: inherit;}
+    
+    .waiting-message { text-align: center; padding: 30px; background: white; border-radius: 15px; margin-top: 20px; border: 1px solid #eee; }
+    .waiting-icon { font-size: 3rem; color: #ccc; margin-bottom: 15px; animation: pulse 2s infinite; }
+    
+    @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.1); opacity: 0.7; } 100% { transform: scale(1); opacity: 1; } }
 </style>
 @endsection
 
@@ -55,121 +69,99 @@
 <div class="container" style="max-width: 500px; padding: 30px 20px;">
     
     <div class="detail-nav">
-        <a href="{{ route('orders.show', $order->id) }}" class="btn-back">
-            <i class="fas fa-arrow-left"></i> Kembali
-        </a>
-        <button onclick="window.print()" class="btn-print">
-            <i class="fas fa-print"></i> Cetak Struk
-        </button>
+        <a href="{{ route('menu.index') }}" class="btn-back"><i class="fas fa-arrow-left"></i> Menu Utama</a>
+        <span style="font-size: 0.8rem; color: #888;">Order #{{ $order->id }}</span>
     </div>
 
-    {{-- STRUK PEMBAYARAN --}}
+    {{-- 1. STATUS TRACKER (STEPPER) --}}
+    @php
+        $s = $order->status;
+        // Logic class stepper
+        $step1 = ($s == 'new' || $s == 'preparing' || $s == 'ready' || $s == 'completed') ? 'completed' : 'active'; // Bayar (Pending -> Process)
+        $step2 = ($s == 'preparing' || $s == 'ready' || $s == 'completed') ? 'completed' : ($s == 'process' ? 'active' : ''); // Dimasak
+        $step3 = ($s == 'ready' || $s == 'completed') ? 'completed' : ($s == 'preparing' ? 'active' : ''); // Siap
+        $step4 = ($s == 'completed') ? 'completed' : ($s == 'ready' ? 'active' : ''); // Selesai
+    @endphp
+
+    <div class="status-tracker">
+        <div class="step {{ $step1 }}">
+            <div class="step-icon"><i class="fas fa-wallet"></i></div>
+            <div class="step-label">Diterima</div>
+        </div>
+        <div class="step {{ $step2 }}">
+            <div class="step-icon"><i class="fas fa-fire"></i></div>
+            <div class="step-label">Dimasak</div>
+        </div>
+        <div class="step {{ $step3 }}">
+            <div class="step-icon"><i class="fas fa-bell"></i></div>
+            <div class="step-label">Siap</div>
+        </div>
+        <div class="step {{ $step4 }}">
+            <div class="step-icon"><i class="fas fa-check"></i></div>
+            <div class="step-label">Selesai</div>
+        </div>
+    </div>
+
+    {{-- 2. RINCIAN PESANAN --}}
     <div class="receipt-card">
         <div class="receipt-header">
-            <h1 class="receipt-title">BAKSO GALA</h1>
-            <div class="receipt-subtitle">Jl. Otto Iskandardinata No.115, Subang</div>
-            <div style="margin-top: 15px;">
-                <div style="font-size: 0.9rem; font-weight: 600;">NO. PESANAN</div>
-                <div style="font-size: 1.2rem; font-weight: 800; letter-spacing: 2px;">#{{ $order->id }}</div>
-            </div>
-            
-            @php
-                $isPaidOrProcessed = $order->payment_status == 'paid' || in_array($order->status, ['process', 'preparing', 'ready', 'completed']);
-            @endphp
-
-            <div class="order-status-badge">
-                {{ $isPaidOrProcessed ? 'LUNAS / DIPROSES' : 'BELUM BAYAR' }}
-            </div>
-            <div style="margin-top: 5px; font-size: 0.8rem;">
-                {{ $order->created_at->format('d M Y, H:i') }} WIB
-            </div>
+            <h1 class="receipt-title">Rincian Pesanan</h1>
+            <div style="font-size: 0.8rem; opacity: 0.8;">{{ $order->order_type }} - {{ Str::after($order->shipping_address, '-') }}</div>
         </div>
-
-        <div class="receipt-body">
-            @php $subtotal = 0; @endphp
-            @foreach($order->orderDetails as $detail)
-                @php $subtotal += $detail->subtotal; @endphp
-                <div class="item-row">
-                    <div style="flex: 1;">
-                        <span class="item-qty">{{ $detail->quantity }}x</span>
-                        <span class="item-name">{{ $detail->menuItem->name ?? 'Item Dihapus' }}</span>
-                        @if($detail->item_notes)
-                            <div class="item-note">{{ $detail->item_notes }}</div>
-                        @endif
-                    </div>
-                    <div class="item-price">{{ number_format($detail->subtotal, 0, ',', '.') }}</div>
+        
+        @foreach($order->orderDetails as $detail)
+            <div class="item-row">
+                <div style="flex: 1;">
+                    <span style="font-weight: bold; color: var(--primary); margin-right: 5px;">{{ $detail->quantity }}x</span>
+                    <span class="item-name">{{ $detail->menuItem->name ?? 'Item Dihapus' }}</span>
+                    @if($detail->item_notes)
+                        <div class="item-notes">"{{ $detail->item_notes }}"</div>
+                    @endif
                 </div>
-            @endforeach
-
-            <div class="summary-section">
-                <div class="summary-row">
-                    <span>Subtotal</span>
-                    <span>Rp {{ number_format($subtotal, 0, ',', '.') }}</span>
-                </div>
-                @php $serviceFee = $order->total_price - $subtotal; @endphp
-                <div class="summary-row">
-                    <span>Biaya Layanan (0.7%)</span>
-                    <span>Rp {{ number_format($serviceFee, 0, ',', '.') }}</span>
-                </div>
-                <div class="summary-total">
-                    <span>TOTAL</span>
-                    <span>Rp {{ number_format($order->total_price, 0, ',', '.') }}</span>
-                </div>
-                @if($order->payment_method)
-                <div style="text-align: center; margin-top: 15px; font-size: 0.8rem; color: #888;">
-                    Metode: {{ strtoupper($order->payment_method) }}
-                </div>
-                @endif
+                <div style="font-weight: 600;">{{ number_format($detail->subtotal, 0, ',', '.') }}</div>
             </div>
-            <div style="text-align: center; margin-top: 30px; font-size: 0.8rem; color: #999;">
-                -- Terima Kasih --<br>Simpan struk ini sebagai bukti pembayaran.
+        @endforeach
+
+        <div class="total-section">
+            <div class="total-row">
+                <span>TOTAL</span>
+                <span>Rp {{ number_format($order->total_price, 0, ',', '.') }}</span>
+            </div>
+            <div style="text-align: center; margin-top: 10px; font-size: 0.8rem;">
+                Status Bayar: 
+                <span style="color: {{ $order->payment_status == 'paid' ? 'green' : 'red' }}; font-weight: bold;">
+                    {{ strtoupper($order->payment_status) }}
+                </span>
             </div>
         </div>
     </div>
 
-    {{-- BAGIAN REVIEW --}}
-    @if($isPaidOrProcessed)
+    {{-- 3. LOGIC REVIEW & WAITING MESSAGE --}}
+    @if($order->status == 'completed')
+        
+        {{-- SUDAH SELESAI -> BOLEH REVIEW --}}
         <div class="review-card">
-            <h4 style="margin-bottom: 20px; color: var(--navy); font-weight: 700;">Ulasan Pelanggan</h4>
-
             @if($order->review)
-                {{-- TAMPILAN SUDAH REVIEW --}}
-                <div>
-                    <div style="color: #ffc700; font-size: 1.5rem; margin-bottom: 10px;">
-                        @for($i=0; $i<$order->review->rating; $i++) ★ @endfor
-                        @for($i=0; $i<(5-$order->review->rating); $i++) <span style="color: #eee;">★</span> @endfor
-                    </div>
-                    <p style="font-style: italic; color: #555;">"{{ $order->review->comment }}"</p>
-                    @if($order->review->photo)
-                        <img src="{{ asset('storage/' . $order->review->photo) }}" alt="Review" style="width: 100%; border-radius: 10px; margin-top: 10px; object-fit: cover;">
-                    @endif
-                    <div style="margin-top: 15px; color: #28a745; font-weight: bold; font-size: 0.9rem;">
-                        <i class="fas fa-check-circle"></i> Ulasan Terkirim
-                    </div>
-                    
-                    @if($order->review->is_featured)
-                    <div style="margin-top: 10px; font-size: 0.8rem; color: #B1935B; font-weight: bold; background: #fff8e1; padding: 5px; border-radius: 5px; display: inline-block;">
-                        <i class="fas fa-star"></i> Tampil di Beranda (Pilihan AI)
-                    </div>
-                    @endif
+                {{-- SUDAH PERNAH REVIEW --}}
+                <h4 style="color: var(--navy); margin-bottom: 10px;">Terima Kasih!</h4>
+                <div style="color: #ffc700; font-size: 1.5rem; margin-bottom: 10px;">
+                    @for($i=0; $i<$order->review->rating; $i++) ★ @endfor
                 </div>
+                <p style="font-style: italic; color: #666;">"{{ $order->review->comment }}"</p>
+                <div style="margin-top: 10px; color: green; font-size: 0.8rem;"><i class="fas fa-check-circle"></i> Ulasan terkirim</div>
             @else
-                {{-- FORM REVIEW (TANPA AJAX SUBMIT, NORMAL POST) --}}
-                <form id="reviewForm" action="{{ route('orders.review.store', $order->id) }}" method="POST" enctype="multipart/form-data">
+                {{-- FORM REVIEW --}}
+                <h4 style="color: var(--navy);">Beri Ulasan Yuk!</h4>
+                <p style="font-size: 0.85rem; color: #666; margin-bottom: 20px;">Gimana rasa makanannya? Bantu kami jadi lebih baik.</p>
+                
+                <form action="{{ route('orders.review.store', $order->id) }}" method="POST" enctype="multipart/form-data">
                     @csrf
-                    
-                    {{-- TAMPILKAN ERROR VALIDASI JIKA ADA --}}
+                    {{-- Error Message --}}
                     @if($errors->any())
-                        <div style="background: #ffebee; color: #c62828; padding: 10px; border-radius: 8px; margin-bottom: 15px; text-align: left; font-size: 0.85rem;">
-                            <ul style="margin: 0; padding-left: 20px;">
-                                @foreach ($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
+                        <div style="background: #ffebee; color: red; padding: 10px; font-size: 0.8rem; margin-bottom: 10px; border-radius: 5px;">{{ $errors->first() }}</div>
                     @endif
 
-                    <div style="margin-bottom: 15px;">
+                    <div style="margin-bottom: 10px;">
                         <div class="rate">
                             <input type="radio" id="star5" name="rating" value="5" /><label for="star5">5</label>
                             <input type="radio" id="star4" name="rating" value="4" /><label for="star4">4</label>
@@ -179,97 +171,68 @@
                         </div>
                     </div>
 
-                    <div class="ai-wrapper">
-                        <textarea id="reviewComment" name="comment" class="form-control" rows="4" placeholder="Tulis ulasan kasar Anda, biar AI yang perindah... (Contoh: 'Enak banget baksonya kuahnya mantap')" required></textarea>
-                        
-                        <button type="button" class="btn-ai-polish" onclick="polishWithAI()">
-                            <i class="fas fa-magic"></i> 
-                            <span>Perindah Kata</span>
-                            <i class="fas fa-spinner fa-spin ai-loading"></i>
-                        </button>
+                    <textarea name="comment" class="form-control" rows="3" placeholder="Tulis ulasanmu disini..." required></textarea>
+                    
+                    <div style="text-align: left; margin-bottom: 10px;">
+                        <label style="font-size: 0.8rem; font-weight: bold;">Foto (Opsional)</label>
+                        <input type="file" name="photo" class="form-control">
                     </div>
 
-                    <div style="text-align: left; margin-bottom: 15px;">
-                        <label style="font-size: 0.85rem; font-weight: 600; color: #666; display: block; margin-bottom: 5px;">Foto Makanan (Opsional)</label>
-                        <input type="file" name="photo" class="form-control" style="padding: 8px;">
-                    </div>
-
-                    {{-- TOMBOL SUBMIT --}}
-                    <button type="submit" id="btnSubmitReview" class="btn-submit-review" onclick="this.innerHTML='Mengirim...';">Kirim Ulasan</button>
+                    <button type="submit" class="btn-submit-review">Kirim Ulasan</button>
                 </form>
             @endif
         </div>
+
+    @else
+        
+        {{-- BELUM SELESAI -> PESAN TUNGGU --}}
+        <div class="waiting-message">
+            <div class="waiting-icon"><i class="fas fa-hourglass-half"></i></div>
+            <h3 style="margin: 0 0 10px 0; color: var(--navy);">Mohon Ditunggu...</h3>
+            <p style="color: #666; font-size: 0.9rem; line-height: 1.5;">
+                Pesananmu sedang kami siapkan.<br>
+                Halaman ini akan <strong>refresh otomatis</strong> saat status berubah.<br>
+                Kamu bisa memberi ulasan setelah pesanan selesai.
+            </p>
+        </div>
+
     @endif
+
 </div>
+
+{{-- INPUT HIDDEN UNTUK NYIMPAN STATUS TERAKHIR (BUAT JS) --}}
+<input type="hidden" id="currentStatus" value="{{ $order->status }}">
+
 @endsection
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
 <script>
-    // --- 1. POPUP STATUS SETELAH REDIRECT DARI CONTROLLER ---
-    @if(session('success'))
-        Swal.fire({
-            title: 'Berhasil!',
-            text: "{{ session('success') }}",
-            icon: 'success',
-            confirmButtonColor: '#B1935B'
-        });
-    @endif
+    // --- 1. POPUP SWAL STATUS ---
+    @if(session('success')) Swal.fire('Berhasil', "{{ session('success') }}", 'success'); @endif
+    @if(session('error')) Swal.fire('Gagal', "{{ session('error') }}", 'error'); @endif
 
-    @if(session('error'))
-        Swal.fire({
-            title: 'Gagal',
-            text: "{{ session('error') }}",
-            icon: 'error',
-            confirmButtonColor: '#B1935B'
-        });
-    @endif
-
-    // --- 2. LOGIKA AI PERINDAH KATA (POLISH) ---
-    function polishWithAI() {
-        const commentBox = document.getElementById('reviewComment');
-        const text = commentBox.value.trim();
-        const btn = document.querySelector('.btn-ai-polish');
-        const loadingIcon = document.querySelector('.ai-loading');
-        const btnText = btn.querySelector('span');
-
-        if (text.length < 5) {
-            Swal.fire('Ups!', 'Tulis ulasan kasar dulu minimal 5 huruf, nanti AI yang perbaiki.', 'warning');
-            return;
-        }
-
-        btn.disabled = true;
-        btnText.innerText = "Sedang berpikir...";
-        loadingIcon.style.display = "inline-block";
-
-        fetch('{{ route("review.polish") }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            },
-            body: JSON.stringify({ text: text })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                commentBox.value = data.text;
-                commentBox.style.borderColor = "#667eea";
-                setTimeout(() => commentBox.style.borderColor = "#ddd", 1000);
-            } else {
-                Swal.fire('Gagal', data.message, 'error');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            Swal.fire('Error', 'Terjadi kesalahan koneksi.', 'error');
-        })
-        .finally(() => {
-            btn.disabled = false;
-            btnText.innerText = "Perindah Kata";
-            loadingIcon.style.display = "none";
-        });
+    // --- 2. SCRIPT AUTO RELOAD (POLLING) ---
+    // Hanya jalan jika status BELUM 'completed' atau 'cancelled'
+    const statusSekarang = document.getElementById('currentStatus').value;
+    
+    if (statusSekarang !== 'completed' && statusSekarang !== 'cancelled') {
+        
+        console.log("Monitoring status pesanan...");
+        
+        setInterval(() => {
+            fetch("{{ route('orders.status', $order->id) }}")
+                .then(response => response.json())
+                .then(data => {
+                    // Jika status di database BEDA dengan status di halaman saat ini
+                    if (data.status !== statusSekarang) {
+                        console.log("Status berubah! Reloading...");
+                        // Reload halaman agar tampilan stepper berubah & form review muncul
+                        location.reload(); 
+                    }
+                })
+                .catch(err => console.error("Gagal cek status:", err));
+        }, 5000); // Cek setiap 5 detik
     }
 </script>
 @endpush

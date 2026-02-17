@@ -70,7 +70,9 @@ Route::get('/pesanan/{id}/detail', [OrderController::class, 'detail'])->name('or
 // --- TAMBAHKAN INI ---
 Route::get('/pesanan/{id}/cetak', [OrderController::class, 'cetakStruk'])->name('orders.cetak');
 // ...
-
+// --- TAMBAHKAN INI (API KECIL UNTUK CEK STATUS) ---
+Route::get('/pesanan/{id}/status', [OrderController::class, 'checkStatus'])->name('orders.status');
+// ...
 // -----------------------------------------------------------
 // FITUR REVIEW & AI
 // -----------------------------------------------------------

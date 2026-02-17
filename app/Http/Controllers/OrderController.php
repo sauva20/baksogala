@@ -46,16 +46,14 @@ class OrderController extends Controller
         $order = Order::findOrFail($id);
         if ($order->user_id != Auth::id()) abort(403);
         
-        $isReviewable = ($order->payment_status == 'paid') || 
-                        in_array($order->status, ['process', 'preparing', 'ready', 'completed']);
-
-        if (!$isReviewable) {
-            return back()->with('error', 'Pesanan harus diproses atau lunas untuk memberikan ulasan.');
+        // --- PERBAIKAN LOGIKA: HANYA BOLEH REVIEW JIKA STATUS 'COMPLETED' ---
+        if ($order->status !== 'completed') {
+            return back()->with('error', 'Mohon tunggu pesanan selesai disajikan baru memberikan ulasan ya!');
         }
 
         if (Review::where('order_id', $order->id)->exists()) return back()->with('error', 'Sudah direview.');
 
-        // --- PERBAIKAN PENYIMPANAN FOTO (SOLUSI HOSTINGER) ---
+        // Simpan Foto (Logic Hostinger Friendly)
         $photoDbPath = null;
         $base64Image = null;
         $mimeType = null;
@@ -74,7 +72,7 @@ class OrderController extends Controller
             $mimeType = $file->getMimeType();
         }
 
-        // Simpan Review
+        // Simpan Review ke Database
         $review = Review::create([
             'order_id' => $order->id,
             'rating' => $request->rating,
@@ -83,7 +81,7 @@ class OrderController extends Controller
             'is_featured' => false 
         ]);
 
-        // PANGGIL AI
+        // PANGGIL AI UNTUK KURASI
         $aiResult = $this->analyzeReviewWithAI($review, $base64Image, $mimeType);
 
         if ($aiResult === true) {
@@ -93,7 +91,17 @@ class OrderController extends Controller
         }
     }
 
-    // 4. OTAK AI
+    // 4. API KECIL UNTUK AUTO RELOAD STATUS
+    public function checkStatus($id)
+    {
+        $order = Order::select('status', 'payment_status')->findOrFail($id);
+        return response()->json([
+            'status' => $order->status,
+            'payment_status' => $order->payment_status
+        ]);
+    }
+
+    // 5. OTAK AI (GEMINI)
     private function analyzeReviewWithAI($review, $base64Image = null, $mimeType = null)
     {
         $apiKey = env('GEMINI_API_KEY');
@@ -145,7 +153,7 @@ class OrderController extends Controller
         return false;
     }
 
-    // 5. Fitur Polish Review
+    // 6. Fitur Polish Review
     public function polishReview(Request $request)
     {
         $request->validate(['text' => 'required|string|max:500']);
@@ -171,7 +179,9 @@ class OrderController extends Controller
             return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
         }
     }
-        public function cetakStruk($id)
+
+    // 7. Cetak Struk
+    public function cetakStruk($id)
     {
         // Ambil data pesanan beserta detail itemnya
         $order = Order::with(['orderDetails.menuItem'])->findOrFail($id);
