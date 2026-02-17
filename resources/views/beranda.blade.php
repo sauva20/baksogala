@@ -17,61 +17,44 @@
     <link href="https://fonts.cdnfonts.com/css/bolton-sans" rel="stylesheet">
 
     {{-- CSS Tambahan Khusus Slider Review --}}
-<style>
-        /* CONTAINER SLIDER */
+    <style>
         .testimonials-slider {
             display: flex;
             gap: 20px;
-            overflow-x: auto; /* Wajib biar bisa scroll samping */
+            overflow-x: auto;
             padding: 20px 5px;
-            
-            /* Agar scroll halus & nempel (Snap) */
             scroll-behavior: smooth;
-            scroll-snap-type: x mandatory; 
-            -webkit-overflow-scrolling: touch; /* Wajib buat iPhone biar smooth */
-
-            /* Sembunyikan Scrollbar biar rapi */
             -ms-overflow-style: none;  /* IE and Edge */
             scrollbar-width: none;  /* Firefox */
         }
-        
-        /* Sembunyikan scrollbar di Chrome/Safari */
         .testimonials-slider::-webkit-scrollbar {
-            display: none; 
+            display: none; /* Hide scrollbar for Chrome/Safari/Opera */
         }
-
-        /* KARTU REVIEW */
         .testimonial-card {
-            min-width: 300px; /* Lebar fix kartu */
-            max-width: 300px;
+            min-width: 320px; /* Sedikit lebih lebar */
+            max-width: 320px;
             background: white;
             padding: 20px;
             border-radius: 15px;
             box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            text-align: left; /* Teks rata kiri biar lebih rapi dengan foto besar */
             border: 1px solid #eee;
-            
-            /* Agar kartu tidak mengecil (gepeng) */
-            flex-shrink: 0; 
-            
-            /* Agar pas berhenti scroll, posisinya pas di tengah */
-            scroll-snap-align: center; 
-            
+            transition: transform 0.3s ease;
+            flex-shrink: 0;
             display: flex;
             flex-direction: column;
-            transition: transform 0.3s ease;
         }
-
-        /* Efek Hover (Optional buat Desktop) */
         .testimonial-card:hover {
             transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
         }
-
-        /* FOTO */
+        
+        /* FOTO CUSTOMER: DIBUAT BESAR & JELAS (ASPEK RASIO 4:3 atau 16:9) */
         .customer-photo {
             width: 100%;
-            height: 200px;
+            height: 200px; /* Tinggi fix agar seragam */
             margin-bottom: 15px;
-            border-radius: 10px;
+            border-radius: 10px; /* Sudut membulat */
             overflow: hidden;
             border: 1px solid #eee;
             background-color: #f9f9f9;
@@ -79,14 +62,18 @@
         .customer-photo img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: cover; /* Agar foto memenuhi kotak tanpa gepeng */
+            transition: transform 0.3s ease;
+        }
+        .testimonial-card:hover .customer-photo img {
+            transform: scale(1.05); /* Efek zoom dikit saat hover */
         }
 
         .customer-name {
             font-weight: 800;
             color: #2F3D65;
             font-size: 1.1rem;
-            margin-top: auto;
+            margin-top: auto; /* Dorong ke bawah */
         }
         .ai-badge {
             background: #e8f5e9; color: #2e7d32;
@@ -267,8 +254,9 @@
         </div>
     </div>
 </footer>
+
 <script>
-    // --- HANYA LOGIKA HAMBURGER MENU ---
+    // --- 1. LOGIKA HAMBURGER MENU (YANG LAMA) ---
     const hamburger = document.getElementById('hamburgerMenu');
     if (hamburger) {
         hamburger.addEventListener('click', function() {
@@ -276,7 +264,60 @@
         });
     }
 
-    // Tidak ada script scroll lagi, biar Browser HP yang handle scrolnya secara alami.
+    // --- 2. LOGIKA AUTO SCROLL SLIDER ---
+    document.addEventListener("DOMContentLoaded", function() {
+        const slider = document.querySelector('.testimonials-slider');
+        
+        // Cek jika slider ada isinya
+        if (slider) {
+            let isDown = false;
+            let startX;
+            let scrollLeft;
+            let autoScrollInterval;
+
+            // Fungsi untuk menjalankan Auto Scroll
+            const startAutoScroll = () => {
+                autoScrollInterval = setInterval(() => {
+                    // Cek lebar kartu pertama + gap (20px)
+                    const cardWidth = slider.querySelector('.testimonial-card').offsetWidth + 20; 
+                    
+                    // Cek apakah sudah mentok kanan?
+                    const maxScrollLeft = slider.scrollWidth - slider.clientWidth;
+                    
+                    if (slider.scrollLeft >= maxScrollLeft - 10) {
+                        // Jika mentok kanan, balik ke awal dengan smooth
+                        slider.scrollTo({ left: 0, behavior: 'smooth' });
+                    } else {
+                        // Scroll ke kanan 1 kartu
+                        slider.scrollBy({ left: cardWidth, behavior: 'smooth' });
+                    }
+                }, 3000); // Ganti 3000 dengan kecepatan (3000ms = 3 detik)
+            };
+
+            // Fungsi untuk Stop Auto Scroll
+            const stopAutoScroll = () => {
+                clearInterval(autoScrollInterval);
+            };
+
+            // Jalankan Auto Scroll saat halaman dimuat
+            startAutoScroll();
+
+            // --- FITUR PINTAR: STOP SAAT DISENTUH USER ---
+            
+            // Saat Mouse/Jari masuk ke area slider -> STOP
+            slider.addEventListener('mouseenter', stopAutoScroll);
+            slider.addEventListener('touchstart', stopAutoScroll, { passive: true });
+
+            // Saat Mouse/Jari keluar dari area slider -> JALAN LAGI
+            slider.addEventListener('mouseleave', startAutoScroll);
+            slider.addEventListener('touchend', startAutoScroll);
+            
+            // Deteksi scroll manual user (opsional, biar lebih responsif)
+            slider.addEventListener('scroll', () => {
+                // Bisa dikosongkan, browser handle manual scroll secara native
+            });
+        }
+    });
 </script>
 
 </body>
