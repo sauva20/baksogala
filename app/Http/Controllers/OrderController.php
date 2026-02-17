@@ -171,4 +171,11 @@ class OrderController extends Controller
             return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
         }
     }
+        public function cetakStruk($id)
+    {
+        // Ambil data pesanan beserta detail itemnya
+        $order = Order::with(['orderDetails.menuItem'])->findOrFail($id);
+        
+        return view('orders.print', compact('order'));
+    }
 }

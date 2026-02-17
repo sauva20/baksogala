@@ -131,14 +131,5 @@ class OrderController extends Controller
             'items' => $items
         ]);
     }
-    // ... function lainnya ...
-
-    public function cetakStruk($id)
-    {
-        // Ambil data pesanan beserta detail itemnya
-        $order = Order::with(['orderDetails.menuItem'])->findOrFail($id);
-        
-        return view('orders.print', compact('order'));
-    }
-
+    
 }
