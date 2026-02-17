@@ -25,7 +25,7 @@
         /* --- CSS DEFAULT (DESKTOP) --- */
         .admin-wrapper { display: flex; min-height: 100vh; width: 100%; overflow-x: hidden; }
         .admin-sidebar { width: 260px; min-width: 260px; flex-shrink: 0; background-color: #2c3e50; color: white; min-height: 100vh; display: flex; flex-direction: column; transition: 0.3s; z-index: 1001; }
-        .sidebar-logo { padding: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-logo { padding: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); position: relative; }
         .sidebar-logo img { max-width: 60px; height: auto; display: block; margin: 0 auto 10px auto; }
         .admin-main-content { flex-grow: 1; width: calc(100% - 260px); background-color: #f4f6f9; display: flex; flex-direction: column; transition: 0.3s; }
         .admin-header { display: flex; justify-content: space-between; align-items: center; height: 70px; padding: 0 30px; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 25px; flex-shrink: 0; position: relative; z-index: 1000; }
@@ -57,12 +57,64 @@
 
         @keyframes pulse-dot { 0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); } 70% { box-shadow: 0 0 0 5px rgba(231, 76, 60, 0); } 100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); } }
 
+        /* --- PERBAIKAN CSS MOBILE (RESPONSIVE) --- */
         @media (max-width: 992px) {
-            .admin-sidebar { width: 100% !important; min-height: auto; position: relative; }
-            .sidebar-menu { display: none; }
-            .sidebar-menu.active { display: block; position: absolute; top: 100%; left: 0; width: 100%; background: #2c3e50; }
+            /* 1. Ubah layout jadi vertikal (Sidebar di atas, konten di bawah) */
+            .admin-wrapper { flex-direction: column; }
+            
+            /* 2. Sidebar jadi header bar kecil */
+            .admin-sidebar { 
+                width: 100% !important; 
+                min-width: 100% !important; 
+                min-height: auto; 
+                position: relative; 
+                z-index: 2000;
+            }
+
+            /* 3. Tampilkan tombol hamburger yang sebelumnya hidden */
+            #mobileSidebarToggle { 
+                display: block !important; 
+                position: absolute; 
+                right: 20px; 
+                top: 50%;
+                transform: translateY(-50%);
+                background: none; 
+                border: none; 
+                color: white; 
+                font-size: 1.5rem; 
+                cursor: pointer;
+            }
+
+            /* 4. Sembunyikan menu by default */
+            .sidebar-menu { 
+                display: none; 
+                width: 100%;
+                background: #2c3e50;
+            }
+
+            /* 5. Tampilkan menu saat active (Overlay di atas konten) */
+            .sidebar-menu.active { 
+                display: block !important; 
+                position: absolute; 
+                top: 100%; 
+                left: 0; 
+                z-index: 2000; 
+                box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            }
+
+            /* 6. Konten utama full width */
             .admin-main-content { width: 100% !important; }
-            .admin-header { padding: 10px 20px; }
+            
+            /* 7. Header adjustment */
+            .admin-header { padding: 10px 15px; }
+            #sidebarToggle { display: none; /* Sembunyikan toggle desktop */ }
+            
+            /* 8. Fix Notif Dropdown di HP */
+            .notif-dropdown { right: -60px; width: 300px; }
+            
+            /* 9. Text adjustment */
+            .greeting-text { font-size: 0.9rem; }
+            .user-info-text { display: none; /* Hemat tempat di HP */ }
         }
     </style>
 </head>
@@ -158,25 +210,27 @@
         }
     }, { once: true });
 
-    // --- 3. SIDEBAR TOGGLE ---
+    // --- 3. SIDEBAR TOGGLE (PERBAIKAN LOGIC) ---
+    document.getElementById('mobileSidebarToggle').addEventListener('click', function() {
+        document.getElementById('sidebarMenu').classList.toggle('active');
+    });
+
     document.getElementById('sidebarToggle').addEventListener('click', function() {
         const sidebar = document.getElementById('adminSidebar');
         const main = document.querySelector('.admin-main-content');
         if(window.innerWidth > 992) {
             sidebar.style.display = sidebar.style.display === 'none' ? 'flex' : 'none';
             main.style.width = sidebar.style.display === 'none' ? '100%' : 'calc(100% - 260px)';
-        } else {
-            document.getElementById('sidebarMenu').classList.toggle('active');
         }
     });
 
     function toggleNotifDropdown() { document.getElementById('notifDropdown').classList.toggle('show'); }
 
-    // --- 4. SHARED ALERT LOGIC (POLING & FIREBASE SINKRON) ---
+    // --- 4. SHARED ALERT LOGIC ---
     function triggerOrderAlert(id, title, message, type) {
-        if(isAlertOpen || id <= lastGlobalId) return; // Cegah double popup jika ID sama
+        if(isAlertOpen || id <= lastGlobalId) return; 
         
-        lastGlobalId = id; // Update global ID segera
+        lastGlobalId = id; 
         isAlertOpen = true;
         
         if(alarmAudio) {
@@ -201,7 +255,7 @@
         });
     }
 
-    // --- 5. POLLING SCRIPT (BACKUP) ---
+    // --- 5. POLLING SCRIPT ---
     function checkGlobalOrders() {
         if(isAlertOpen) return;
         fetch('{{ route("admin.orders.checkNew") }}?last_id=' + lastGlobalId)
@@ -214,7 +268,7 @@
     }
     setInterval(checkGlobalOrders, 5000);
 
-    // --- 6. REGISTRASI SERVICE WORKER (WAJIB BUAT BACKGROUND) ---
+    // --- 6. REGISTRASI SERVICE WORKER ---
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/firebase-messaging-sw.js')
         .then(reg => console.log('SW Registered:', reg.scope))
