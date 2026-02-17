@@ -23,27 +23,27 @@
         <section class="content-section" id="kisah-kami">
             <div class="section-icon"><i class="fas fa-utensils"></i></div>
             <h2>Kisah Bakso Gala</h2>
-            <p>Berawal dari resep bakso turun-temurun, Bakso Gala lahir dari impian untuk menyajikan bakso dengan cita rasa otentik yang tak terlupakan. Dimulai dari warung kecil di sudut kota, kami selalu berpegang teguh pada kualitas bahan baku dan proses pembuatan yang higienis. Setiap mangkuk bakso yang kami sajikan adalah perwujudan dari dedikasi kami untuk memberikan pengalaman kuliner terbaik bagi setiap pelanggan.</p>
+            <p>Berawal dari resep bakso turun-temurun, Bakso Gala lahir dari impian untuk menyajikan bakso dengan cita rasa otentik yang tak terlupakan. Dimulai dari ide kecil, kami selalu berpegang teguh pada kualitas bahan baku dan proses pembuatan yang higienis. Setiap mangkuk bakso yang kami sajikan adalah perwujudan dari dedikasi kami untuk memberikan pengalaman kuliner terbaik bagi setiap pelanggan.</p>
             <div class="timeline">
                 <div class="timeline-item">
                     <div class="timeline-icon"><i class="fas fa-seedling"></i></div>
                     <div class="timeline-content">
-                        <h4>2017 - Titik Awal</h4>
-                        <p>Bakso Gala pertama kali didirikan oleh **Bapak Fajar** di Sukamulya, Subang, dengan fokus pada bakso kuah klasik yang sederhana namun kaya rasa.</p>
+                        <h4>2020 - Titik Awal</h4>
+                        <p>Bakso Gala pertama kali didirikan dengan ide yang di kembangkan dari bakmie cap gala, dengan fokus pada bakso kuah klasik yang sederhana namun kaya rasa.</p>
                     </div>
                 </div>
                 <div class="timeline-item">
                     <div class="timeline-icon"><i class="fas fa-fire"></i></div>
                     <div class="timeline-content">
-                        <h4>2024 - Inovasi Bakso Lava</h4>
-                        <p>Kami memperkenalkan menu andalan baru: **Bakso Lava** dengan isian keju dan cabai, yang langsung menjadi favorit pelanggan dan membuat nama kami semakin dikenal.</p>
+                        <h4>2024 - Inovasi Bakso</h4>
+                        <p>Kami memperkenalkan inovasi baru: **Bakso Cap Gala** dengan isian daging yang khas, yang langsung menjadi favorit pelanggan dan membuat nama kami semakin dikenal.</p>
                     </div>
                 </div>
                 <div class="timeline-item">
                     <div class="timeline-icon"><i class="fas fa-store-alt"></i></div>
                     <div class="timeline-content">
-                        <h4>2025 - Pembukaan Cabang Kedua</h4>
-                        <p>Untuk menjangkau lebih banyak penikmat bakso, kami membuka cabang kedua di lokasi strategis, menawarkan suasana kafe yang lebih nyaman dan modern.</p>
+                        <h4>2025 - Perkembangan</h4>
+                        <p>Untuk menjangkau lebih banyak penikmat bakso, merubah dan mengpgrade inovasi kami menjadi bakso khas yaitu bakso cap gala, menawarkan suasana kafe yang lebih nyaman dan modern.</p>
                     </div>
                 </div>
             </div>
@@ -98,23 +98,25 @@
                 <div class="contact-item">
                     <i class="fab fa-whatsapp"></i>
                     <div>
-                        <strong>WhatsApp</strong>
-                        <a href="https://wa.me/6281234567890" target="_blank">0822-1888-2608</a>
+                        <strong>Contact</strong>
+                        <a href="https://wa.me/6281234567890" target="_blank">+62 881-0816-31531</a>
                     </div>
                 </div>
                 <div class="contact-item">
                     <i class="fas fa-envelope"></i>
                     <div>
                         <strong>Email</strong>
-                        <a href="mailto:info@baksogala.com">info@baksogala.com</a>
+                        <a href="mailto:baksocapgala@gmail.com">baksocapgala@gmail.com</a>
                     </div>
                 </div>
                 <div class="contact-item">
                     <i class="fas fa-clock"></i>
                     <div>
                         <strong>Jam Buka</strong>
-                        <span>Senin - Jumat: 11.00 - 20.00 WIB</span>
-                        <span>Sabtu & Minggu: 11.30 - 21.00 WIB</span>
+                        <span>Senin : Libur</span>
+                        <span>Selasa - Kamis: 11.00 - 20.00 WIB</span>
+                        <span>Jumat & Sabtu: 11.30 - 21.00 WIB</span>
+                        <span>Minggu: 11.00 - 20.00 WIB</span>
                     </div>
                 </div>
             </div>

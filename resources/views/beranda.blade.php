@@ -214,8 +214,8 @@
         <div class="container">
             <h2>Siap Menikmati Kelezatan Bakso Gala?</h2>
             <p>Kunjungi kami langsung atau pesan online sekarang!</p>
-            <p class="contact-info-footer">Jl. Otto Iskandardinata No.115, Subang</p>
-            <p class="contact-info-footer">Telepon: <a href="tel:+62221234567">(022) 123-xxxx</a></p>
+            <p class="contact-info-footer">Jl. Otto Iskandardinata No.115, Karanganyar, Kec. Subang, Kabupaten Subang, Jawa Barat 41211</p>
+            <p class="contact-info-footer">Contact: <a href="tel:+62221234567">+62 881-0816-31531</a></p>
         </div>
     </section>
 </main>
@@ -238,7 +238,7 @@
             <div class="footer-col">
                 <h3>Hubungi Kami</h3>
                 <p>Jl. Otto Iskandardinata No.115, Subang</p>
-                <p>Email: info@baksogala.com</p>
+                <p>Email: baksocapgala@gmail.com</p>
             </div>
             <div class="footer-col">
                 <h3>Ikuti Kami</h3>
