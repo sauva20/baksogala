@@ -19,6 +19,7 @@ use App\Http\Controllers\Admin\PromotionController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\LogController;
+use App\Http\Controllers\Admin\ReviewController; // <--- TAMBAHKAN INI
 
 // --- ALIAS CONTROLLER ADMIN ---
 use App\Http\Controllers\Admin\MenuController as AdminMenuController; 
@@ -67,12 +68,12 @@ Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.s
 Route::get('/pesanan/{id}', [OrderController::class, 'show'])->name('orders.show');
 Route::get('/pesanan/{id}/detail', [OrderController::class, 'detail'])->name('orders.detail');
 
-// --- TAMBAHKAN INI ---
+// --- CETAK STRUK ---
 Route::get('/pesanan/{id}/cetak', [OrderController::class, 'cetakStruk'])->name('orders.cetak');
-// ...
-// --- TAMBAHKAN INI (API KECIL UNTUK CEK STATUS) ---
+
+// --- API KECIL UNTUK CEK STATUS ---
 Route::get('/pesanan/{id}/status', [OrderController::class, 'checkStatus'])->name('orders.status');
-// ...
+
 // -----------------------------------------------------------
 // FITUR REVIEW & AI
 // -----------------------------------------------------------
@@ -113,33 +114,34 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
     // -------------------------------------------------------
     // A. AKSES BERSAMA (OWNER & KASIR)
     // -------------------------------------------------------
-    // Kasir HANYA bisa akses Pesanan & Menu
+    // Kasir HANYA bisa akses Pesanan, Menu, & Review
     
     // 1. Manajemen Pesanan
     Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
     Route::patch('/orders/{id}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.updateStatus');
-    Route::get('/orders/check-new', [AdminOrderController::class, 'checkNewOrders'])->name('orders.checkNew'); // Notifikasi
-    Route::get('/orders/{id}/detail', [AdminOrderController::class, 'getOrderDetail'])->name('orders.detail'); // Modal Detail
+    Route::get('/orders/check-new', [AdminOrderController::class, 'checkNewOrders'])->name('orders.checkNew');
+    Route::get('/orders/{id}/detail', [AdminOrderController::class, 'getOrderDetail'])->name('orders.detail');
 
     // 2. Manajemen Menu
     Route::resource('menu', AdminMenuController::class)->except(['create', 'show', 'edit']);
+
+    // 3. Manajemen Review (Monitoring Homepage) <--- TAMBAHKAN INI
+    Route::get('/reviews', [ReviewController::class, 'index'])->name('reviews.index');
+    Route::patch('/reviews/{review}/toggle', [ReviewController::class, 'toggleFeatured'])->name('reviews.toggle');
+    Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
 
 
     // -------------------------------------------------------
     // B. AKSES KHUSUS OWNER (KASIR DILARANG MASUK)
     // -------------------------------------------------------
-    // Menggunakan Class Middleware 'IsOwner' agar Artisan Seeder tidak error
     Route::middleware([IsOwner::class])->group(function () {
         
         // Dashboard Statistik
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-
-// ... di dalam Group Route Admin Owner ...
         
+        // Generate QR Code Area
         Route::get('/generate-qr', function () {
-            // TAMBAHKAN 'Area Photobooth' DI SINI
             $areas = ['Lantai 2 Gym', 'Indoor More', 'Depan Utama', 'Area Photobooth'];
-            
             $totalMejaPerArea = 20; 
             return view('admin.print_qr', compact('areas', 'totalMejaPerArea'));
         })->name('qr.generate');

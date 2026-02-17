@@ -112,7 +112,9 @@
             {{-- 3. MENU: SEMUA (OWNER & KASIR) --}}
             <li><a href="{{ route('admin.menu.index') }}" class="menu-item {{ Route::is('admin.menu*') ? 'active' : '' }}"><i class="fas fa-utensils"></i> Manajemen Menu</a></li>
             
+            {{-- MENU BARU: MANAJEMEN REVIEW --}}
             <li><a href="{{ route('admin.reviews.index') }}" class="menu-item {{ Route::is('admin.reviews*') ? 'active' : '' }}"><i class="fas fa-star"></i> Manajemen Review</a></li>
+            
             {{-- 4. FITUR OWNER (PROMO, LAPORAN, USER) --}}
             @if(Auth::user()->role == 'owner')
                 <li><a href="{{ route('admin.promotions.index') }}" class="menu-item {{ Route::is('admin.promotions*') ? 'active' : '' }}"><i class="fas fa-tags"></i> Diskon & Voucher</a></li>
@@ -225,13 +227,12 @@
     document.addEventListener('click', function(event) {
         const wrapper = document.getElementById('notifWrapper');
         const dropdown = document.getElementById('notifDropdown');
-        if (!wrapper.contains(event.target)) {
+        if (wrapper && dropdown && !wrapper.contains(event.target)) {
             dropdown.classList.remove('show');
         }
     });
 
     // --- 3. AUTO CHECK NEW ORDERS (ALARM BERISIK & AUTO CANCEL) ---
-    // Pastikan ini berjalan di halaman selain login
     @if(Auth::check())
         let lastGlobalId = {{ \DB::table('orders')->max('id') ?? 0 }};
         let isAlertOpen = false; 
