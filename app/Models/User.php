@@ -21,10 +21,10 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
-        'phone_number', // WAJIB ADA AGAR BISA DISIMPAN
+        'phone_number', // Pastikan kolom ini ada di database Anda
         'password',
-        'role', // WAJIB ADA JIKA PAKAI ROLE
-        'fcm_token',
+        'role',        // Pastikan kolom ini ada di database Anda
+        'fcm_token',   // <--- INI PENTING: Agar token bisa disimpan
     ];
 
     /**
