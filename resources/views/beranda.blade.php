@@ -14,19 +14,20 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.cdnfonts.com/css/bolton-sans" rel="stylesheet">
 
-    {{-- CSS Tambahan Khusus Slider Review --}}
+    {{-- CSS Tambahan Khusus Slider Review (MANUAL SCROLL OPTIMIZED) --}}
     <style>
         /* CONTAINER SLIDER */
         .testimonials-slider {
             display: flex;
             gap: 20px;
-            overflow-x: auto;
-            scroll-snap-type: x mandatory;
-            -webkit-overflow-scrolling: touch;
-            padding: 20px 5px;
             
-            /* PERBAIKAN: Hapus scroll-behavior: smooth agar looping JS instan */
-            scroll-behavior: auto; 
+            /* --- KUNCI SCROLL MANUAL --- */
+            overflow-x: auto;             /* Wajib agar bisa discroll samping */
+            scroll-snap-type: x mandatory; /* Efek magnet */
+            -webkit-overflow-scrolling: touch; /* Scroll licin di iPhone */
+            
+            padding: 20px 5px;
+            scroll-behavior: smooth;
             
             /* Sembunyikan Scrollbar */
             -ms-overflow-style: none;
@@ -39,19 +40,23 @@
 
         /* KARTU REVIEW */
         .testimonial-card {
-            min-width: 300px;
+            min-width: 300px; /* Lebar tetap agar rapi di HP */
             max-width: 300px;
-            flex-shrink: 0;
+            flex-shrink: 0;   /* Jangan mengecil */
+            
             background: white;
             padding: 20px;
             border-radius: 15px;
             box-shadow: 0 10px 20px rgba(0,0,0,0.05);
             border: 1px solid #eee;
             text-align: left;
+            
             display: flex;
             flex-direction: column;
             transition: transform 0.3s ease;
-            scroll-snap-align: center;
+            
+            /* --- KUNCI SNAP --- */
+            scroll-snap-align: center; /* Kartu berhenti pas di tengah layar */
         }
         
         .testimonial-card:hover {
@@ -59,6 +64,7 @@
             box-shadow: 0 15px 30px rgba(0,0,0,0.1);
         }
         
+        /* FOTO CUSTOMER */
         .customer-photo {
             width: 100%;
             height: 200px;
@@ -111,21 +117,22 @@
     <section class="about-us-section">
         <div class="container">
             <h2>Tentang Bakso Gala</h2>
+            <p>Bakso Gala hadir untuk memuaskan hasrat Anda akan bakso otentik dengan cita rasa yang tak terlupakan. Kami menggunakan bahan-bahan segar pilihan dan resep turun-temurun.</p>
             <div class="features-grid">
                 <div class="feature-item">
                     <i class="fas fa-leaf"></i>
                     <h3>Bahan Segar Berkualitas</h3>
-                    <p>Kami hanya menggunakan daging sapi dan bahan baku terbaik.</p>
+                    <p>Kami hanya menggunakan daging sapi dan bahan baku terbaik, dipilih langsung dari peternak lokal.</p>
                 </div>
                 <div class="feature-item">
                     <i class="fas fa-utensils"></i>
                     <h3>Resep Autentik Warisan</h3>
-                    <p>Resep kami menjamin cita rasa bakso yang kaya dan khas.</p>
+                    <p>Diwariskan dari generasi ke generasi, resep kami menjamin cita rasa bakso yang kaya dan khas.</p>
                 </div>
                 <div class="feature-item">
                     <i class="fas fa-home"></i>
                     <h3>Suasana Nyaman</h3>
-                    <p>Nikmati hidangan Anda dalam suasana kafe yang hangat.</p>
+                    <p>Nikmati hidangan Anda dalam suasana kafe yang hangat, bersih, dan ramah keluarga.</p>
                 </div>
             </div>
         </div>
@@ -144,14 +151,14 @@
                         <span class="price">Rp {{ number_format($item->price, 0, ',', '.') }}</span>
                     </div>
                 @empty
-                    <p class="text-center" style="grid-column: 1/-1;">Belum ada menu yang ditampilkan.</p>
+                    <p class="text-center" style="grid-column: 1/-1;">Belum ada menu yang ditampilkan di beranda.</p>
                 @endforelse
             </div>
             <a href="{{ url('/menu') }}" class="btn btn-secondary">Lihat Menu Lengkap</a>
         </div>
     </section>
 
-    {{-- TESTIMONIALS --}}
+    {{-- TESTIMONIALS (MANUAL SCROLL + AUTO INFINITE) --}}
     <section class="testimonials-section">
         <div class="container">
             <h2>Kata Mereka Tentang Bakso Gala</h2>
@@ -198,7 +205,7 @@
                                 <i class="fas fa-store" style="font-size: 3rem;"></i>
                             </div>
                         </div>
-                        <p>"Jadilah orang pertama yang memberikan ulasan terbaik Anda!"</p>
+                        <p>"Jadilah orang pertama yang memberikan ulasan terbaik Anda dan tampil di sini!"</p>
                         <cite class="customer-name">- Admin Bakso Gala</cite>
                     </div>
                 </div>
@@ -210,14 +217,42 @@
     <section class="cta-final-section">
         <div class="container">
             <h2>Siap Menikmati Kelezatan Bakso Gala?</h2>
-            <p>Jl. Otto Iskandardinata No.115, Subang</p>
-            <p>Contact: <a href="tel:+62881081631531">+62 881-0816-31531</a></p>
+            <p>Kunjungi kami langsung atau pesan online sekarang!</p>
+            <p class="contact-info-footer">Jl. Otto Iskandardinata No.115, Karanganyar, Kec. Subang, Kabupaten Subang, Jawa Barat 41211</p>
+            <p class="contact-info-footer">Contact: <a href="tel:+62221234567">+62 881-0816-31531</a></p>
         </div>
     </section>
 </main>
 
 <footer>
     <div class="container">
+        <div class="footer-cols">
+            <div class="footer-col">
+                <h3>Bakso Gala</h3>
+                <p>Bakso Gala hadir untuk kelezatan sejati. Nikmati hidangan bakso otentik yang dibuat dengan cinta.</p>
+            </div>
+            <div class="footer-col">
+                <h3>Informasi</h3>
+                <ul>
+                    <li><a href="{{ url('/tentang-kami') }}">Tentang Kami</a></li>
+                    <li><a href="{{ url('/menu') }}">Menu</a></li>
+                    <li><a href="{{ url('/faq') }}">FAQ</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h3>Hubungi Kami</h3>
+                <p>Jl. Otto Iskandardinata No.115, Subang</p>
+                <p>Email: baksocapgala@gmail.com</p>
+            </div>
+            <div class="footer-col">
+                <h3>Ikuti Kami</h3>
+                <div class="social-links">
+                    <a href="#" target="_blank"><i class="fab fa-instagram"></i></a>
+                    <a href="#" target="_blank"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" target="_blank"><i class="fab fa-tiktok"></i></a>
+                </div>
+            </div>
+        </div>
         <div class="copyright">
             <p>&copy; 2025 Bakso Gala. Semua Hak Dilindungi.</p>
         </div>
@@ -225,47 +260,48 @@
 </footer>
 
 <script>
+    // --- 1. LOGIKA HAMBURGER MENU ---
+    const hamburger = document.getElementById('hamburgerMenu');
+    if (hamburger) {
+        hamburger.addEventListener('click', function() {
+            document.getElementById('mainNav').classList.toggle('active');
+        });
+    }
+
+    // --- 2. LOGIKA REAL INFINITE LOOP ---
     const slider = document.getElementById('reviewSlider');
     
     if (slider && slider.children.length > 1) {
-        // 1. Gandakan isi slider untuk efek infinite
+        // Gandakan elemen di dalam slider agar looping terasa tanpa ujung
         const originalContent = slider.innerHTML;
         slider.innerHTML += originalContent; 
 
         let isUserInteracting = false;
-        let scrollSpeed = 1; // Kecepatan scroll
 
+        // Fungsi Auto Scroll pelan
         function autoScroll() {
             if (!isUserInteracting) {
-                slider.scrollLeft += scrollSpeed;
+                slider.scrollLeft += 1; // Geser 1 pixel
                 
-                // 2. Jika sudah mencapai setengah (akhir konten asli), reset ke 0 secara instan
+                // Jika sudah sampai ke konten duplikat (setengah dari total lebar)
+                // Pindahkan balik ke posisi 0 tanpa kelihatan (Instant)
                 if (slider.scrollLeft >= slider.scrollWidth / 2) {
                     slider.scrollLeft = 0;
                 }
             }
         }
 
-        // Jalankan auto scroll
+        // Jalankan auto scroll setiap 30 milidetik (sangat smooth)
         let scrollInterval = setInterval(autoScroll, 30);
 
-        // 3. Matikan auto scroll saat user menyentuh/klik slider
-        const stopScroll = () => { isUserInteracting = true; };
-        const startScroll = () => { isUserInteracting = false; };
-
-        slider.addEventListener('touchstart', stopScroll);
-        slider.addEventListener('mousedown', stopScroll);
-        slider.addEventListener('touchend', startScroll);
-        slider.addEventListener('mouseup', startScroll);
-        slider.addEventListener('mouseleave', startScroll);
-    }
-
-    // Hamburger Menu Logic
-    const hamburger = document.getElementById('hamburgerMenu');
-    if (hamburger) {
-        hamburger.addEventListener('click', function() {
-            document.getElementById('mainNav').classList.toggle('active');
-        });
+        // Hentikan auto scroll kalau user lagi swipe manual
+        slider.addEventListener('touchstart', () => isUserInteracting = true);
+        slider.addEventListener('mousedown', () => isUserInteracting = true);
+        
+        // Lanjutkan auto scroll setelah user selesai interaksi
+        slider.addEventListener('touchend', () => isUserInteracting = false);
+        slider.addEventListener('mouseup', () => isUserInteracting = false);
+        slider.addEventListener('mouseleave', () => isUserInteracting = false);
     }
 </script>
 
