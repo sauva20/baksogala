@@ -316,6 +316,92 @@
     @endif
 </script>
 
+{{-- SCRIPT FIREBASE (SAYA GABUNGKAN SESUAI REQUEST) --}}
+<script type="module">
+  // Import functions (Saya tambahkan 'firebase-messaging' karena script asli Anda hanya analytics)
+  // Versi tetap menggunakan 12.9.0 sesuai script yang Anda berikan
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-analytics.js";
+  import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-messaging.js";
+
+  // Konfigurasi Firebase Anda (Sesuai yang Anda paste)
+  const firebaseConfig = {
+    apiKey: "AIzaSyDmAom7VDb0OkTijt0Hf5UE3YB1kuNvywA",
+    authDomain: "pondasikita-465612.firebaseapp.com",
+    projectId: "pondasikita-465612",
+    storageBucket: "pondasikita-465612.firebasestorage.app",
+    messagingSenderId: "92626258010",
+    appId: "1:92626258010:web:35b5aedc63783dd6387063",
+    measurementId: "G-GWR362C6NP"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+  
+  // --- TAMBAHAN: LOGIKA AGAR NOTIFIKASI JALAN ---
+  // Kita perlu mengaktifkan Messaging agar bisa terima pesan
+  const messaging = getMessaging(app);
+
+  function requestPermission() {
+    console.log('Requesting permission...');
+    Notification.requestPermission().then((permission) => {
+      if (permission === 'granted') {
+        console.log('Notification permission granted.');
+        
+        // PENTING: GANTI 'MASUKKAN_VAPID_KEY_DISINI' DENGAN KEY PAIR DARI CONSOLE
+        // (Tanpa ini, token tidak bisa dibuat)
+        getToken(messaging, { vapidKey: 'BKKkRu1AiCDLOEndKleGE3P0yQunprYaUppLGulYJJmbiy3NupZ6RrMxI4fX8HfLnb-Opy7hcH-ObnXi0YDCT9c' }).then((currentToken) => {
+          if (currentToken) {
+            console.log('Token Device:', currentToken);
+            // TODO: Kirim token ini ke server Anda via AJAX untuk disimpan
+          } else {
+            console.log('No registration token available.');
+          }
+        }).catch((err) => {
+          console.log('An error occurred while retrieving token. ', err);
+        });
+      } else {
+        console.log('Unable to get permission to notify.');
+      }
+    });
+  }
+  
+  requestPermission();
+
+  // Listener untuk pesan saat website dibuka (Foreground)
+  onMessage(messaging, (payload) => {
+    console.log('Message received. ', payload);
+    
+    // 1. Bunyikan Alarm (Menggunakan audio ID 'alarmSound' yang sudah ada di HTML Anda)
+    const alarmAudio = document.getElementById('alarmSound');
+    if(alarmAudio) {
+        alarmAudio.currentTime = 0;
+        alarmAudio.muted = false;
+        alarmAudio.play().catch(e => console.log("Audio play error:", e));
+    }
+
+    // 2. Tampilkan SweetAlert (Sama seperti gaya alert Anda yang lain)
+    Swal.fire({
+        title: payload.notification.title,
+        text: payload.notification.body,
+        icon: 'success',
+        showCancelButton: true,
+        confirmButtonText: '🔊 MATIKAN ALARM & LIHAT',
+        cancelButtonText: 'Tutup',
+        confirmButtonColor: '#27ae60',
+        cancelButtonColor: '#d33'
+    }).then((result) => {
+        if (result.isConfirmed) {
+             if(alarmAudio) alarmAudio.pause();
+             window.location.href = "{{ route('admin.orders.index') }}";
+        } else {
+             if(alarmAudio) alarmAudio.pause();
+        }
+    });
+  });
+</script>
+
 @stack('scripts')
 </body>
 </html>
