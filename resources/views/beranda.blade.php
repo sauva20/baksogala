@@ -157,8 +157,8 @@
                             {{-- Foto Customer (BESAR & JELAS) --}}
 <div class="customer-photo">
     @if($review->photo)
-        {{-- Pastikan path di DB adalah 'uploads/reviews/namafile.jpg' --}}
-        <img src="{{ asset($review->photo) }}" alt="Foto Review">
+        {{-- PERBAIKAN: Tambahkan 'uploads/' di depan variabel --}}
+        <img src="{{ asset('uploads/' . $review->photo) }}" alt="Foto Review">
     @else
         {{-- Fallback jika foto tidak ada --}}
         <div style="width:100%; height:100%; background:#f0f0f0; display:flex; align-items:center; justify-content:center;">
