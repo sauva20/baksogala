@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Executive Dashboard')
+@section('title', 'Bakso Gala - Dashboard Admin')
 
 @section('styles')
     <style>
