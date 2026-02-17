@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\MenuItem; // Model Menu
-use App\Models\Review;   // Model Review
+use App\Models\MenuItem; 
+use App\Models\Review;   
 
 class HomepageController extends Controller
 {
@@ -23,26 +23,26 @@ class HomepageController extends Controller
                              ->get();
 
         // ----------------------------------------------------
-        // 2. AMBIL REVIEW PILIHAN (Untuk Section Testimonials)
+        // 2. AMBIL REVIEW TERBARU (Untuk Section Testimonials)
         // ----------------------------------------------------
-        // - with('order'): Eager load relasi order untuk ambil nama customer
-        // - where('is_featured', true): Hanya ambil review yang sudah diapprove admin/AI
-        // - latest(): Urutkan dari yang terbaru
-        // - take(5): Ambil 5 review saja untuk slider
+        // - with('order'): Agar nama customer dari tabel order ikut terambil
+        // - where('is_featured', true): Hanya tampilkan review yang sudah lolos seleksi AI/Admin
+        // - latest(): PENTING! Ini yang bikin review TERBARU muncul duluan (urutan descending)
+        // - take(10): Ambil 10 review terakhir biar slidernya panjang
         $reviews = Review::with('order')
                          ->where('is_featured', true)
-                         ->latest()
-                         ->take(5)
+                         ->latest() 
+                         ->take(10)
                          ->get();
 
         // ----------------------------------------------------
         // 3. KIRIM DATA KE VIEW
         // ----------------------------------------------------
-        // Pastikan nama view ini ('beranda') sesuai dengan nama file di resources/views/
-        // Jika file Anda bernama 'index.blade.php', ubah 'beranda' jadi 'index'.
+        // Pastikan file view Anda bernama 'beranda.blade.php' di folder resources/views/
+        // Jika nama filenya 'welcome.blade.php', ganti 'beranda' jadi 'welcome'
         return view('beranda', [
-            'menu_items' => $menuItems,
-            'reviews'    => $reviews
+            'menu_items' => $menuItems, // Di view dipanggil dengan $menu_items
+            'reviews'    => $reviews    // Di view dipanggil dengan $reviews
         ]);
     }
 

@@ -158,14 +158,20 @@
         </div>
     </section>
 
-    {{-- TESTIMONIALS (MANUAL SCROLL) --}}
+    {{-- TESTIMONIALS (MANUAL SCROLL + AUTO REWIND) --}}
     <section class="testimonials-section">
         <div class="container">
             <h2>Kata Mereka Tentang Bakso Gala</h2>
             
             @if(isset($reviews) && $reviews->count() > 0)
-                <div class="testimonials-slider">
-                    @foreach($reviews as $review)
+                {{-- ID ditambahkan untuk Script Auto Rewind --}}
+                <div class="testimonials-slider" id="reviewSlider">
+                    
+                    {{-- 
+                       PERBAIKAN URUTAN: 
+                       Menggunakan sortByDesc('created_at') agar yang terbaru muncul duluan 
+                    --}}
+                    @foreach($reviews->sortByDesc('created_at') as $review)
                         <div class="testimonial-card">
                             {{-- Foto Customer --}}
                             <div class="customer-photo">
@@ -275,8 +281,26 @@
         });
     }
 
-    // --- TIDAK ADA LAGI SCRIPT AUTO SCROLL ---
-    // Scroll sekarang 100% ditangani oleh CSS di atas agar mulus di HP
+    // --- 2. LOGIKA AUTO REWIND (LOOPING SEMU) ---
+    // Script ini akan mengecek jika user sudah scroll mentok kanan, 
+    // dia akan otomatis balik ke kiri (awal) setelah 1 detik.
+    const slider = document.getElementById('reviewSlider');
+    
+    if (slider) {
+        slider.addEventListener('scroll', () => {
+            // Cek apakah sudah mentok kanan (dengan toleransi 10px)
+            if (slider.scrollLeft + slider.clientWidth >= slider.scrollWidth - 10) {
+                
+                // Balik ke awal setelah 1 detik
+                setTimeout(() => {
+                    slider.scrollTo({
+                        left: 0,
+                        behavior: 'smooth'
+                    });
+                }, 1000); 
+            }
+        });
+    }
 </script>
 
 </body>
