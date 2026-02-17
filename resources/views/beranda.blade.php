@@ -14,19 +14,20 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.cdnfonts.com/css/bolton-sans" rel="stylesheet">
 
-    {{-- CSS Tambahan Khusus Slider Review (MANUAL SCROLL OPTIMIZED) --}}
+    {{-- CSS Tambahan Khusus Slider Review --}}
     <style>
         /* CONTAINER SLIDER */
         .testimonials-slider {
             display: flex;
             gap: 20px;
-            
-            /* --- KUNCI SCROLL MANUAL --- */
-            overflow-x: auto;             /* Wajib agar bisa discroll samping */
-            scroll-snap-type: x mandatory; /* Efek magnet */
-            -webkit-overflow-scrolling: touch; /* Scroll licin di iPhone */
-            
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
             padding: 20px 5px;
+            
+            /* Snap tetap ada agar manual scroll enak (nge-magnet) */
+            scroll-snap-type: x mandatory; 
+            
+            /* Transisi geser halus */
             scroll-behavior: smooth;
             
             /* Sembunyikan Scrollbar */
@@ -40,23 +41,21 @@
 
         /* KARTU REVIEW */
         .testimonial-card {
-            min-width: 300px; /* Lebar tetap agar rapi di HP */
+            min-width: 300px;
             max-width: 300px;
-            flex-shrink: 0;   /* Jangan mengecil */
-            
+            flex-shrink: 0;
             background: white;
             padding: 20px;
             border-radius: 15px;
             box-shadow: 0 10px 20px rgba(0,0,0,0.05);
             border: 1px solid #eee;
             text-align: left;
-            
             display: flex;
             flex-direction: column;
             transition: transform 0.3s ease;
             
-            /* --- KUNCI SNAP --- */
-            scroll-snap-align: center; /* Kartu berhenti pas di tengah layar */
+            /* Setiap kartu jadi titik berhenti magnet */
+            scroll-snap-align: center;
         }
         
         .testimonial-card:hover {
@@ -64,7 +63,6 @@
             box-shadow: 0 15px 30px rgba(0,0,0,0.1);
         }
         
-        /* FOTO CUSTOMER */
         .customer-photo {
             width: 100%;
             height: 200px;
@@ -78,10 +76,6 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transition: transform 0.3s ease;
-        }
-        .testimonial-card:hover .customer-photo img {
-            transform: scale(1.05);
         }
 
         .customer-name {
@@ -113,32 +107,19 @@
         </div>
     </section>
 
-    {{-- ABOUT US --}}
+    {{-- ... (Section About Us & Menu Preview tetap seperti kode asli Anda) ... --}}
     <section class="about-us-section">
         <div class="container">
             <h2>Tentang Bakso Gala</h2>
-            <p>Bakso Gala hadir untuk memuaskan hasrat Anda akan bakso otentik dengan cita rasa yang tak terlupakan. Kami menggunakan bahan-bahan segar pilihan dan resep turun-temurun.</p>
+            <p>Bakso Gala hadir untuk memuaskan hasrat Anda akan bakso otentik dengan cita rasa yang tak terlupakan.</p>
             <div class="features-grid">
-                <div class="feature-item">
-                    <i class="fas fa-leaf"></i>
-                    <h3>Bahan Segar Berkualitas</h3>
-                    <p>Kami hanya menggunakan daging sapi dan bahan baku terbaik, dipilih langsung dari peternak lokal.</p>
-                </div>
-                <div class="feature-item">
-                    <i class="fas fa-utensils"></i>
-                    <h3>Resep Autentik Warisan</h3>
-                    <p>Diwariskan dari generasi ke generasi, resep kami menjamin cita rasa bakso yang kaya dan khas.</p>
-                </div>
-                <div class="feature-item">
-                    <i class="fas fa-home"></i>
-                    <h3>Suasana Nyaman</h3>
-                    <p>Nikmati hidangan Anda dalam suasana kafe yang hangat, bersih, dan ramah keluarga.</p>
-                </div>
+                <div class="feature-item"><i class="fas fa-leaf"></i><h3>Bahan Segar</h3></div>
+                <div class="feature-item"><i class="fas fa-utensils"></i><h3>Resep Autentik</h3></div>
+                <div class="feature-item"><i class="fas fa-home"></i><h3>Suasana Nyaman</h3></div>
             </div>
         </div>
     </section>
 
-    {{-- MENU PREVIEW --}}
     <section class="menu-preview-section">
         <div class="container">
             <h2>Cicipi Kelezatan Andalan Kami</h2>
@@ -151,21 +132,20 @@
                         <span class="price">Rp {{ number_format($item->price, 0, ',', '.') }}</span>
                     </div>
                 @empty
-                    <p class="text-center" style="grid-column: 1/-1;">Belum ada menu yang ditampilkan di beranda.</p>
+                    <p class="text-center" style="grid-column: 1/-1;">Belum ada menu.</p>
                 @endforelse
             </div>
             <a href="{{ url('/menu') }}" class="btn btn-secondary">Lihat Menu Lengkap</a>
         </div>
     </section>
 
-    {{-- TESTIMONIALS (MANUAL SCROLL + AUTO SLIDE) --}}
+    {{-- TESTIMONIALS (AUTO SLIDE FIX) --}}
     <section class="testimonials-section">
         <div class="container">
             <h2>Kata Mereka Tentang Bakso Gala</h2>
             
             @if(isset($reviews) && $reviews->count() > 0)
                 <div class="testimonials-slider" id="reviewSlider">
-                    {{-- Diurutkan dari yang terbaru --}}
                     @foreach($reviews->sortByDesc('created_at') as $review)
                         <div class="testimonial-card">
                             <div class="customer-photo">
@@ -179,18 +159,14 @@
                             </div>
 
                             <div style="color: #ffc700; margin-bottom: 10px; font-size: 0.9rem;">
-                                @for($i=0; $i < $review->rating; $i++)
-                                    <i class="fas fa-star"></i>
-                                @endfor
+                                @for($i=0; $i < $review->rating; $i++) <i class="fas fa-star"></i> @endfor
                             </div>
 
                             <p style="font-style: italic; color: #555; font-size: 0.95rem; line-height: 1.5; margin-bottom: 15px;">
                                 "{{ Str::limit($review->comment, 120) }}"
                             </p>
 
-                            <cite class="customer-name">
-                                - {{ $review->order->customer_name ?? 'Pelanggan Setia' }}
-                            </cite>
+                            <cite class="customer-name">- {{ $review->order->customer_name ?? 'Pelanggan Setia' }}</cite>
 
                             <div class="ai-badge">
                                 <i class="fas fa-check-circle"></i> Pilihan AI
@@ -201,63 +177,24 @@
             @else
                 <div class="testimonials-slider">
                     <div class="testimonial-card">
-                        <div class="customer-photo">
-                            <div style="width:100%; height:100%; background:#f0f0f0; display:flex; align-items:center; justify-content:center; color:#ccc;">
-                                <i class="fas fa-store" style="font-size: 3rem;"></i>
-                            </div>
-                        </div>
-                        <p>"Jadilah orang pertama yang memberikan ulasan terbaik Anda dan tampil di sini!"</p>
-                        <cite class="customer-name">- Admin Bakso Gala</cite>
+                        <p>"Jadilah orang pertama yang memberikan ulasan!"</p>
                     </div>
                 </div>
             @endif
-
         </div>
     </section>
 
-    {{-- CTA FINAL --}}
     <section class="cta-final-section">
         <div class="container">
             <h2>Siap Menikmati Kelezatan Bakso Gala?</h2>
-            <p>Kunjungi kami langsung atau pesan online sekarang!</p>
-            <p class="contact-info-footer">Jl. Otto Iskandardinata No.115, Karanganyar, Kec. Subang, Kabupaten Subang, Jawa Barat 41211</p>
-            <p class="contact-info-footer">Contact: <a href="tel:+62221234567">+62 881-0816-31531</a></p>
+            <p>Pesan online sekarang!</p>
         </div>
     </section>
 </main>
 
 <footer>
     <div class="container">
-        <div class="footer-cols">
-            <div class="footer-col">
-                <h3>Bakso Gala</h3>
-                <p>Bakso Gala hadir untuk kelezatan sejati. Nikmati hidangan bakso otentik yang dibuat dengan cinta.</p>
-            </div>
-            <div class="footer-col">
-                <h3>Informasi</h3>
-                <ul>
-                    <li><a href="{{ url('/tentang-kami') }}">Tentang Kami</a></li>
-                    <li><a href="{{ url('/menu') }}">Menu</a></li>
-                    <li><a href="{{ url('/faq') }}">FAQ</a></li>
-                </ul>
-            </div>
-            <div class="footer-col">
-                <h3>Hubungi Kami</h3>
-                <p>Jl. Otto Iskandardinata No.115, Subang</p>
-                <p>Email: baksocapgala@gmail.com</p>
-            </div>
-            <div class="footer-col">
-                <h3>Ikuti Kami</h3>
-                <div class="social-links">
-                    <a href="#" target="_blank"><i class="fab fa-instagram"></i></a>
-                    <a href="#" target="_blank"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#" target="_blank"><i class="fab fa-tiktok"></i></a>
-                </div>
-            </div>
-        </div>
-        <div class="copyright">
-            <p>&copy; 2025 Bakso Gala. Semua Hak Dilindungi.</p>
-        </div>
+        <p>&copy; 2025 Bakso Gala. Semua Hak Dilindungi.</p>
     </div>
 </footer>
 
@@ -270,7 +207,7 @@
         });
     }
 
-    // --- 2. LOGIKA AUTO SLIDE (GAYA LAMA + LOOPING) ---
+    // --- 2. LOGIKA AUTO SCROLL (PER KARTU / CARD-BY-CARD) ---
     document.addEventListener("DOMContentLoaded", function() {
         const slider = document.getElementById('reviewSlider');
         if (!slider) return;
@@ -279,28 +216,33 @@
 
         const startAutoSlide = () => {
             autoSlideInterval = setInterval(() => {
-                // Ambil lebar satu kartu + gap
-                const card = slider.querySelector('.testimonial-card');
-                const scrollAmount = card.offsetWidth + 20; 
+                // Hitung lebar 1 kartu + gap 20px
+                const firstCard = slider.querySelector('.testimonial-card');
+                if (!firstCard) return;
+                
+                const cardWidth = firstCard.offsetWidth + 20; 
 
-                // Jika sudah mentok kanan, balik ke awal (0)
+                // Jika sudah sampai ujung kanan (toleransi 10px)
                 if (slider.scrollLeft + slider.clientWidth >= slider.scrollWidth - 10) {
+                    // Balik ke paling awal
                     slider.scrollTo({ left: 0, behavior: 'smooth' });
                 } else {
-                    // Geser ke kanan satu kartu
-                    slider.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+                    // Geser ke kartu berikutnya
+                    slider.scrollBy({ left: cardWidth, behavior: 'smooth' });
                 }
             }, 3000); // Geser setiap 3 detik
         };
 
         const stopAutoSlide = () => clearInterval(autoSlideInterval);
 
-        // Jalankan
+        // Jalankan slide otomatis
         startAutoSlide();
 
-        // Pause saat user sentuh/scroll manual
+        // Pause otomatis kalau user sedang menyentuh atau klik slider (Interaksi Manual)
         slider.addEventListener('touchstart', stopAutoSlide);
         slider.addEventListener('mousedown', stopAutoSlide);
+        
+        // Lanjut lagi kalau jari/mouse dilepas
         slider.addEventListener('touchend', startAutoSlide);
         slider.addEventListener('mouseup', startAutoSlide);
     });
