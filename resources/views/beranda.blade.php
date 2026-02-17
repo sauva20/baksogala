@@ -6,11 +6,9 @@
     <title>Bakso Gala - Kelezatan Tiada Tara</title>
 
     {{-- Memanggil Aset --}}
-{{-- Memanggil Aset --}}
-<link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
-<link rel="stylesheet" href="{{ asset('assets/css/navbar.css') }}">
-{{-- Sesuaikan path favicon jika ada di dalam assets/images --}}
-<link rel="icon" href="{{ asset('assets/images/GALA.png') }}" type="image/png">
+    <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/navbar.css') }}">
+    <link rel="icon" href="{{ asset('assets/images/GALA.png') }}" type="image/png">
 
     {{-- Link Eksternal --}}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -130,8 +128,7 @@
             <div class="menu-items-grid">
                 @forelse($menu_items as $item)
                     <div class="menu-item">
-                        {{-- Bagian Menu Preview --}}
-<img src="{{ asset($item->image_url) }}" alt="{{ $item->name }}">
+                        <img src="{{ asset($item->image_url) }}" alt="{{ $item->name }}">
                         <h3>{{ $item->name }}</h3>
                         <p>{{ Str::limit($item->description, 60) }}</p>
                         <span class="price">Rp {{ number_format($item->price, 0, ',', '.') }}</span>
@@ -144,47 +141,39 @@
         </div>
     </section>
 
-    {{-- TESTIMONIALS (DINAMIS DARI DATABASE & AI) --}}
+    {{-- TESTIMONIALS (INFINITE SCROLL) --}}
     <section class="testimonials-section">
         <div class="container">
             <h2>Kata Mereka Tentang Bakso Gala</h2>
             
-            {{-- Cek apakah ada review dari Controller --}}
             @if(isset($reviews) && $reviews->count() > 0)
                 <div class="testimonials-slider">
                     @foreach($reviews as $review)
                         <div class="testimonial-card">
-                            {{-- Foto Customer (BESAR & JELAS) --}}
-<div class="customer-photo">
-    @if($review->photo)
-        {{-- PERBAIKAN: Tambahkan 'uploads/' di depan variabel --}}
-        <img src="{{ asset('uploads/' . $review->photo) }}" alt="Foto Review">
-    @else
-        {{-- Fallback jika foto tidak ada --}}
-        <div style="width:100%; height:100%; background:#f0f0f0; display:flex; align-items:center; justify-content:center;">
-             <i class="fas fa-image" style="font-size: 3rem; color:#ccc;"></i>
-        </div>
-    @endif
-</div>
+                            <div class="customer-photo">
+                                @if($review->photo)
+                                    <img src="{{ asset('uploads/' . $review->photo) }}" alt="Foto Review">
+                                @else
+                                    <div style="width:100%; height:100%; background:#f0f0f0; display:flex; align-items:center; justify-content:center;">
+                                         <i class="fas fa-image" style="font-size: 3rem; color:#ccc;"></i>
+                                    </div>
+                                @endif
+                            </div>
 
-                            {{-- Bintang Rating --}}
                             <div style="color: #ffc700; margin-bottom: 10px; font-size: 0.9rem;">
                                 @for($i=0; $i < $review->rating; $i++)
                                     <i class="fas fa-star"></i>
                                 @endfor
                             </div>
 
-                            {{-- Komentar --}}
                             <p style="font-style: italic; color: #555; font-size: 0.95rem; line-height: 1.5; margin-bottom: 15px;">
                                 "{{ Str::limit($review->comment, 120) }}"
                             </p>
 
-                            {{-- Nama Customer --}}
                             <cite class="customer-name">
                                 - {{ $review->order->customer_name ?? 'Pelanggan Setia' }}
                             </cite>
 
-                            {{-- Badge AI --}}
                             <div class="ai-badge">
                                 <i class="fas fa-check-circle"></i> Pilihan AI
                             </div>
@@ -192,7 +181,6 @@
                     @endforeach
                 </div>
             @else
-                {{-- Tampilan Default (Fallback) Jika Belum Ada Review --}}
                 <div class="testimonials-slider">
                     <div class="testimonial-card">
                         <div class="customer-photo">
@@ -256,12 +244,48 @@
 </footer>
 
 <script>
+    // --- 1. HAMBURGER MENU ---
     const hamburger = document.getElementById('hamburgerMenu');
     if (hamburger) {
         hamburger.addEventListener('click', function() {
             document.getElementById('mainNav').classList.toggle('active');
         });
     }
+
+    // --- 2. CONTINUOUS AUTO SCROLL (LOGIKA BARU) ---
+    document.addEventListener("DOMContentLoaded", function() {
+        const slider = document.querySelector('.testimonials-slider');
+        
+        if (slider && slider.children.length > 0) {
+            // Gandakan isi slider untuk efek looping tanpa putus
+            const content = slider.innerHTML;
+            slider.innerHTML += content; 
+            
+            let speed = 1; // Kecepatan pixel per step
+            let isHovered = false;
+
+            function move() {
+                if (!isHovered) {
+                    slider.scrollLeft += speed;
+                    
+                    // Jika sudah sampai di setengah (akhir konten asli), reset ke nol
+                    if (slider.scrollLeft >= slider.scrollWidth / 2) {
+                        slider.scrollLeft = 0;
+                    }
+                }
+                requestAnimationFrame(move);
+            }
+
+            // Jalankan animasi
+            move();
+
+            // Berhenti saat disentuh/hover agar user bisa baca
+            slider.addEventListener('mouseenter', () => isHovered = true);
+            slider.addEventListener('mouseleave', () => isHovered = false);
+            slider.addEventListener('touchstart', () => isHovered = true);
+            slider.addEventListener('touchend', () => isHovered = false);
+        }
+    });
 </script>
 </body>
 </html>
