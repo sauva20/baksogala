@@ -54,10 +54,16 @@
         }
         .loading-spinner { text-align: center; padding: 30px; color: #666; }
 
-        /* BADGE STATUS PEMBAYARAN (BARU) */
+        /* BADGE STATUS PEMBAYARAN */
         .badge-payment { font-size: 0.75rem; padding: 3px 8px; border-radius: 4px; font-weight: bold; display: inline-block; margin-top: 5px; }
         .badge-payment.paid { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
         .badge-payment.unpaid { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+
+        /* Highlight Tab Hari Ini */
+        .status-tab.today-active {
+            background-color: #B1935B; color: white; border-color: #B1935B;
+            font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
     </style>
 @endsection
 
@@ -67,19 +73,35 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h1 class="page-title">Dapur & Kasir</h1>
-            <p class="text-muted" style="margin-top: 5px;">Pantau pesanan masuk.</p>
+            <p class="text-muted" style="margin-top: 5px;">
+                @if(request('status') == 'today' || !request('status'))
+                    Menampilkan pesanan masuk <strong>HARI INI ({{ date('d M Y') }})</strong>.
+                @else
+                    Mode Arsip / Filter Status.
+                @endif
+            </p>
         </div>
         <button class="btn-refresh" onclick="location.reload()"><i class="fas fa-sync-alt"></i> Refresh</button>
     </div>
 
-    {{-- Tabs --}}
+    {{-- Tabs (UPDATED: Added 'Hari Ini') --}}
     <div class="status-tabs-container">
-        @php $s = request('status', 'all'); @endphp
-        <a href="{{ route('admin.orders.index', ['status' => 'all']) }}" class="status-tab {{ $s == 'all' ? 'active' : '' }}">Semua</a>
+        @php $s = request('status', 'today'); @endphp
+        
+        {{-- Tab Utama: HARI INI --}}
+        <a href="{{ route('admin.orders.index', ['status' => 'today']) }}" 
+           class="status-tab {{ $s == 'today' ? 'today-active' : '' }}">
+           <i class="fas fa-calendar-day"></i> HARI INI
+        </a>
+
+        <div style="border-left: 2px solid #ddd; height: 30px; margin: 0 10px;"></div>
+
+        {{-- Tab Filter Status --}}
         <a href="{{ route('admin.orders.index', ['status' => 'new']) }}" class="status-tab {{ $s == 'new' ? 'active' : '' }}">Baru</a>
         <a href="{{ route('admin.orders.index', ['status' => 'preparing']) }}" class="status-tab {{ $s == 'preparing' ? 'active' : '' }}">Dimasak</a>
         <a href="{{ route('admin.orders.index', ['status' => 'ready']) }}" class="status-tab {{ $s == 'ready' ? 'active' : '' }}">Siap</a>
         <a href="{{ route('admin.orders.index', ['status' => 'completed']) }}" class="status-tab {{ $s == 'completed' ? 'active' : '' }}">Selesai</a>
+        <a href="{{ route('admin.orders.index', ['status' => 'all']) }}" class="status-tab {{ $s == 'all' ? 'active' : '' }}">Semua Riwayat</a>
     </div>
 
     {{-- Table --}}
@@ -97,7 +119,6 @@
                             <td><strong>{{ $order->customer_name }}</strong><br><small class="text-muted">{{ $order->customer_phone }}</small></td>
                             <td><strong>{{ Str::before($order->shipping_address, '-') }}</strong><br><small>{{ Str::after($order->shipping_address, '-') }}</small></td>
                             
-                            {{-- KOLOM TOTAL & STATUS BAYAR (DIUPDATE) --}}
                             <td>
                                 <div class="price-text">Rp {{ number_format($order->total_price, 0, ',', '.') }}</div>
                                 <span class="payment-method" style="margin-right: 5px;">{{ strtoupper($order->payment_method) }}</span>
@@ -116,10 +137,17 @@
                                     <span class="status-pill status-{{ $order->status }}">{{ ucfirst($order->status) }}</span> 
                                 @endif
                             </td>
-                            <td>{{ $order->created_at->format('H:i') }}</td>
+                            
+                            <td>
+                                {{ $order->created_at->format('H:i') }}
+                                @if(!$order->created_at->isToday())
+                                    <br><small class="text-muted">{{ $order->created_at->format('d/m') }}</small>
+                                @endif
+                            </td>
+
                             <td class="text-right">
                                 <div class="action-buttons">
-                                    {{-- FIX LOGIC TOMBOL --}}
+                                    {{-- LOGIC TOMBOL --}}
                                     @if(in_array($order->status, ['new', 'pending', 'process', 'paid']))
                                         <form action="{{ route('admin.orders.updateStatus', $order->id) }}" method="POST" class="form-update-status">
                                             @csrf @method('PATCH')
@@ -150,7 +178,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="7" class="empty-state">Belum ada pesanan.</td></tr>
+                        <tr><td colspan="7" class="empty-state">Belum ada pesanan {{ request('status') == 'today' ? 'hari ini' : '' }}.</td></tr>
                     @endforelse
                 </tbody>
             </table>
@@ -159,7 +187,7 @@
     </div>
 </div>
 
-{{-- MODAL POPUP (SAMA PERSIS, TIDAK PERLU DIUBAH) --}}
+{{-- MODAL POPUP --}}
 <div id="orderDetailModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -174,7 +202,6 @@
                     <div style="color: #666;" id="modalCustPhone"></div>
                     <div style="margin-top: 5px;">
                         <span style="background: #e3f2fd; padding: 2px 8px; border-radius: 4px; font-size: 0.9em; color: #1565c0;" id="modalTable"></span>
-                        {{-- STATUS BAYAR DI MODAL JUGA --}}
                         <span id="modalPaymentStatusBadge" class="badge-payment" style="margin-left: 10px;"></span>
                     </div>
                 </div>
@@ -226,12 +253,13 @@
                     document.getElementById("modalCustName").innerText = order.customer_name;
                     document.getElementById("modalCustPhone").innerText = order.customer_phone;
                     document.getElementById("modalTable").innerText = order.shipping_address;
-                    document.getElementById("modalNote").innerText = order.order_notes || '-';
+                    document.getElementById("modalNote").innerText = order.notes || '-';
                     document.getElementById("modalPrintLink").href = `/pesanan/${order.id}`;
                     
-                    // UPDATE STATUS BAYAR DI MODAL
+                    // --- FIX BUG STATUS PEMBAYARAN DI MODAL (UPDATED) ---
                     const badge = document.getElementById("modalPaymentStatusBadge");
-                    if(order.payment_status === 'paid') {
+                    // Pastikan cek case insensitive
+                    if(order.payment_status && order.payment_status.toLowerCase() === 'paid') {
                         badge.className = 'badge-payment paid';
                         badge.innerHTML = '<i class="fas fa-check-circle"></i> LUNAS';
                     } else {
@@ -243,10 +271,8 @@
                     let calculatedSubtotal = 0;
 
                     data.items.forEach(item => {
-                        // Pastikan harga diparsing sebagai angka
                         let price = parseInt(item.price.replace(/\./g, ''));
                         let sub = price * item.quantity;
-                        
                         calculatedSubtotal += sub;
                         itemsHtml += `
                             <tr>
@@ -260,9 +286,6 @@
                     });
                     document.getElementById("modalItemsList").innerHTML = itemsHtml;
 
-                    // Hitung Ulang Biaya Layanan dari Total di Database
-                    // (Karena di controller Anda mengirim total_price sudah format string, kita harus hati-hati)
-                    // Lebih aman pakai data mentah jika ada, tapi ini workaround:
                     let totalStr = order.total_price.replace(/\./g, '');
                     let totalInt = parseInt(totalStr);
                     let serviceFee = totalInt - calculatedSubtotal;
