@@ -14,6 +14,32 @@
             --nav-bg: #ffffff;
         }
 
+        /* --- LOGIKA STORE CLOSED --- */
+        .store-closed-banner {
+            background: #d32f2f;
+            color: white;
+            text-align: center;
+            padding: 12px;
+            font-weight: 700;
+            position: sticky;
+            top: 73px; 
+            z-index: 995;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .menu-card.closed {
+            filter: grayscale(1);
+            opacity: 0.7;
+            cursor: not-allowed !important;
+        }
+
+        .btn-mobile-add.disabled {
+            background: #ccc !important;
+            border-color: #ccc !important;
+            color: #666 !important;
+        }
+
         /* --- HAPUS FOOTER KHUSUS HALAMAN INI --- */
         footer, .footer-section, .site-footer { 
             display: none !important; 
@@ -62,13 +88,11 @@
             position: relative;
         }
 
-        /* Hover Effect */
         .addon-item:hover, .variant-item:hover {
             border-color: var(--primary-color);
             background: #fffbf0;
         }
 
-        /* Selected State (Checked) */
         .addon-item:has(input:checked), .variant-item:has(input:checked) {
             background-color: #fff8e1; 
             border-color: var(--primary-color);
@@ -97,7 +121,6 @@
             color: var(--primary-color);
         }
 
-        /* Sembunyikan Input Asli */
         .addon-checkbox, .variant-radio {
             appearance: none;
             -webkit-appearance: none;
@@ -113,14 +136,11 @@
             transition: 0.2s;
         }
 
-        /* Radio butuh border radius beda? Tidak, bulat juga bagus */
-        
         .addon-checkbox:checked, .variant-radio:checked {
             background-color: var(--primary-color);
             border-color: var(--primary-color);
         }
 
-        /* Tanda Centang / Dot */
         .addon-checkbox:checked::after {
             content: '✔';
             font-size: 10px;
@@ -136,7 +156,6 @@
             position: absolute;
         }
 
-        /* --- WAJIB PILIH ALERT --- */
         .variant-error {
             color: #d32f2f;
             font-size: 0.85rem;
@@ -153,7 +172,6 @@
             }
         }
 
-        /* --- ESTETIK TEXTAREA CATATAN --- */
         .modal-notes-section {
             margin-top: 25px;
         }
@@ -190,7 +208,6 @@
             outline: none;
         }
 
-        /* --- BACK TO TOP BUTTON --- */
         .btn-back-to-top {
             position: fixed; bottom: 30px; right: 30px; width: 50px; height: 50px;
             background-color: var(--secondary-color); color: white; border: none; border-radius: 50%;
@@ -201,12 +218,10 @@
         .btn-back-to-top:hover { background-color: var(--primary-color); transform: translateY(-3px); }
         .btn-back-to-top.show { opacity: 1; visibility: visible; transform: translateY(0); }
 
-        /* --- TAMPILAN MOBILE --- */
         @media (max-width: 768px) {
             body { background-color: var(--app-bg); padding-bottom: 100px; padding-top: 0; }
             .menu-hero { display: none; } 
             
-            /* Header & Nav */
             .mobile-header { display: block; background: white; padding: 15px 20px; position: sticky; top: 0; z-index: 1000; box-shadow: 0 1px 5px rgba(0,0,0,0.05); }
             .brand-title { font-size: 1.4rem; font-weight: 800; color: var(--secondary-color); margin: 0; }
             .brand-subtitle { font-size: 0.8rem; color: #666; margin: 0;}
@@ -219,7 +234,6 @@
             .cat-pill { display: inline-block; padding: 8px 16px; border-radius: 20px; background: #f1f3f5; color: #555; font-size: 0.85rem; font-weight: 600; text-decoration: none; transition: 0.2s; border: 1px solid transparent; }
             .cat-pill.active { background: var(--primary-color); color: white; box-shadow: 0 2px 8px rgba(177, 147, 91, 0.4); }
 
-            /* Cards */
             .menu-container { padding-top: 15px; }
             .menu-section { scroll-margin-top: 140px; }
             .menu-section h2 { font-size: 1.1rem; font-weight: 800; color: #333; margin: 0 0 15px 10px; border-left: 4px solid var(--primary-color); padding-left: 8px; }
@@ -233,12 +247,10 @@
             .btn-mobile-add { width: 100%; padding: 6px 0; background: white; color: var(--primary-color); border: 1px solid var(--primary-color); border-radius: 50px; font-size: 0.8rem; font-weight: 700; text-align: center; cursor: pointer; }
             .btn-mobile-add:active { background: var(--primary-color); color: white; }
 
-            /* Sticky Cart */
             .sticky-cart-bar { display: none; position: fixed; bottom: 15px; left: 15px; right: 15px; background: var(--secondary-color); color: white; padding: 12px 15px; border-radius: 12px; box-shadow: 0 8px 20px rgba(47, 61, 101, 0.4); z-index: 900; align-items: center; justify-content: space-between; animation: slideUp 0.3s; }
             .sticky-cart-bar.show { display: flex; }
             .cart-badge { background: var(--primary-color); color: white; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold; position: absolute; top: -8px; right: -8px; border: 2px solid var(--secondary-color);}
 
-            /* Modal */
             .modal { align-items: flex-end; z-index: 9999 !important; }
             .modal-content { width: 100%; height: 100%; border-radius: 0; position: fixed; top: 0; left: 0; background: white; display: flex; flex-direction: column; z-index: 10000; }
             .modal-body { overflow-y: auto; padding-bottom: 120px; flex-grow: 1; display: block; }
@@ -260,6 +272,33 @@
 @endsection
 
 @section('content')
+
+@php
+    // LOGIKA JAM OPERASIONAL
+    $now = \Carbon\Carbon::now('Asia/Jakarta');
+    $day = $now->dayOfWeek; // Carbon: 0 (Sun), 1 (Mon), ..., 6 (Sat)
+    $time = $now->format('H:i');
+    $isOpen = false;
+
+    // Senin: Libur
+    if ($day !== \Carbon\Carbon::MONDAY) {
+        // Selasa - Kamis & Minggu: 11.00 - 20.00
+        if (in_array($day, [\Carbon\Carbon::TUESDAY, \Carbon\Carbon::WEDNESDAY, \Carbon\Carbon::THURSDAY, \Carbon\Carbon::SUNDAY])) {
+            if ($time >= '11:00' && $time <= '20:00') $isOpen = true;
+        }
+        // Jumat & Sabtu: 11.30 - 21.00
+        elseif (in_array($day, [\Carbon\Carbon::FRIDAY, \Carbon\Carbon::SATURDAY])) {
+            if ($time >= '11:30' && $time <= '21:00') $isOpen = true;
+        }
+    }
+@endphp
+
+{{-- Banner Toko Tutup --}}
+@if(!$isOpen)
+    <div class="store-closed-banner">
+        <i class="fas fa-clock"></i> PEMESANAN SEDANG TUTUP. Silakan pesan kembali pada jam operasional.
+    </div>
+@endif
 
 {{-- 1. Mobile Header & Table Info --}}
 <div class="mobile-header d-md-none">
@@ -300,9 +339,9 @@
             <h2>{{ $category }}</h2>
             <div class="menu-cards-grid">
                 @foreach ($items as $item)
-                    {{-- Tambahkan data-category --}}
-                    <div class="menu-card"
-                         onclick="openModal(this)"
+                    {{-- Tambahkan class 'closed' jika toko tutup --}}
+                    <div class="menu-card {{ !$isOpen ? 'closed' : '' }}"
+                         @if($isOpen) onclick="openModal(this)" @endif
                          data-id="{{ $item->id }}"
                          data-name="{{ $item->name }}"
                          data-price="{{ $item->price }}"
@@ -316,7 +355,9 @@
                             <h3>{{ $item->name }} @if($item->is_favorite) <i class="fas fa-thumbs-up" style="color: #ffc107; font-size: 0.8em;"></i> @endif</h3>
                             <p>{{ Str::limit($item->description, 60) }}</p>
                             <span class="price">Rp {{ number_format($item->price, 0, ',', '.') }}</span>
-                            <div class="btn-mobile-add">Tambah</div>
+                            <div class="btn-mobile-add {{ !$isOpen ? 'disabled' : '' }}">
+                                {{ $isOpen ? 'Tambah' : 'Tutup' }}
+                            </div>
                         </div>
                     </div>
                 @endforeach
@@ -325,7 +366,8 @@
     @endforeach
 </div>
 
-{{-- 4. Sticky Cart Bar --}}
+{{-- 4. Sticky Cart Bar (Hanya Muncul Jika Buka) --}}
+@if($isOpen)
 <div id="stickyCart" class="sticky-cart-bar" onclick="window.location.href='{{ route('cart.index') }}'">
     <div style="display: flex; align-items: center; gap: 10px;">
         <div style="position: relative;">
@@ -341,10 +383,11 @@
         CHECKOUT <i class="fas fa-arrow-right"></i>
     </div>
 </div>
+@endif
 
 <button id="backToTop" class="btn-back-to-top" title="Kembali ke atas"><i class="fas fa-arrow-up"></i></button>
 
-{{-- 6. Modal Detail (ESTETIK BARU) --}}
+{{-- 6. Modal Detail --}}
 <div class="modal" id="menuDetailModal">
     <div class="modal-content">
         <button class="close-modal-btn" onclick="closeModal()">&times;</button>
@@ -361,7 +404,6 @@
                     <span id="modal-price-value">Rp 0</span>
                 </div>
                 
-                {{-- AREA PILIHAN VARIAN (MANIS/ASIN) - KHUSUS BAKMIE --}}
                 <div id="variant-wrapper" style="display: none;">
                     <div class="modal-variants">
                         <h4>Pilih Rasa (Wajib) <span style="color:red">*</span></h4>
@@ -379,7 +421,6 @@
                     </div>
                 </div>
 
-                {{-- AREA TAMBAH TOPPING (CHIPS STYLE) --}}
                 <div id="addons-wrapper">
                     @if(isset($sideDishes) && count($sideDishes) > 0)
                     <div class="modal-addons">
@@ -397,13 +438,11 @@
                     @endif
                 </div>
 
-                {{-- Catatan --}}
                 <div class="modal-notes-section">
                     <label for="item-notes">Catatan Khusus (Opsional)</label>
                     <textarea id="item-notes" rows="3" placeholder="Contoh: Jangan pakai daun bawang, sambal dipisah..."></textarea>
                 </div>
 
-                {{-- Desktop Qty --}}
                 <div class="quantity-control quantity-control-desktop" style="margin-top: 20px;">
                     <button type="button" onclick="updateQty(-1)">-</button>
                     <input type="number" id="qty-input-desktop" value="1" min="1" readonly style="width: 50px; text-align: center;">
@@ -412,10 +451,8 @@
             </div>
         </div>
 
-        {{-- Desktop Button --}}
         <button id="add-btn-desktop" class="add-to-cart-btn-modal add-btn-desktop" onclick="addToCart()" style="margin: 20px;">Tambah ke Keranjang</button>
 
-        {{-- Mobile Sticky Bottom Bar --}}
         <div class="modal-bottom-bar-mobile">
             <div class="qty-wrapper">
                 <div class="qty-btn" onclick="updateQty(-1)"><i class="fas fa-minus"></i></div>
@@ -474,7 +511,9 @@
 
     // --- OPEN MODAL ---
     function openModal(card) {
-        document.getElementById('stickyCart').classList.remove('show'); 
+        if (document.getElementById('stickyCart')) {
+            document.getElementById('stickyCart').classList.remove('show'); 
+        }
         
         const modal = document.getElementById('menuDetailModal');
         currentMenuItem = {
@@ -494,7 +533,6 @@
         const addonsWrapper = document.getElementById('addons-wrapper');
         const variantWrapper = document.getElementById('variant-wrapper');
         
-        // 1. Logic Hide Addons (Sama seperti sebelumnya)
         const excludedCategories = ['minuman', 'drink', 'beverage', 'tambahan', 'side dish', 'topping'];
         const isExcluded = excludedCategories.some(keyword => cat.includes(keyword));
         
@@ -504,21 +542,18 @@
             addonsWrapper.style.display = 'block';
         }
 
-        // 2. Logic Variant Wajib (Bakmie/Mie)
-        // Reset Radio Button
         const radios = document.querySelectorAll('input[name="noodle_flavor"]');
         radios.forEach(r => r.checked = false);
         document.getElementById('variant-error').style.display = 'none';
 
-        // Cek apakah ini Bakmie?
         if (cat.includes('mie') || cat.includes('bakmie')) {
             variantWrapper.style.display = 'block';
             isVariantRequired = true;
-            toggleAddButton(false); // Matikan tombol dulu
+            toggleAddButton(false); 
         } else {
             variantWrapper.style.display = 'none';
             isVariantRequired = false;
-            toggleAddButton(true); // Hidupkan tombol
+            toggleAddButton(true); 
         }
 
         setQty(1);
@@ -603,6 +638,8 @@
 
     function updateStickyCartUI(qty, total) {
         const bar = document.getElementById('stickyCart');
+        if (!bar) return; 
+
         if (qty > 0) {
             bar.classList.add('show');
             document.getElementById('stickyQty').innerText = qty;
@@ -613,12 +650,11 @@
     }
 
     function addToCart() {
-        // Cek validasi akhir
         if (isVariantRequired) {
             const selectedVariant = document.querySelector('input[name="noodle_flavor"]:checked');
             if (!selectedVariant) {
                 document.getElementById('variant-error').style.display = 'block';
-                return; // Stop process
+                return;
             }
         }
 
@@ -627,7 +663,6 @@
         let selectedAddons = [];
         let addonsPrice = 0;
         
-        // Ambil Addons
         const addonsWrapper = document.getElementById('addons-wrapper');
         if (addonsWrapper.style.display !== 'none') {
             document.querySelectorAll('.addon-checkbox:checked').forEach((cb) => {
@@ -636,7 +671,6 @@
             });
         }
 
-        // Ambil Varian Rasa (Gabungkan ke Notes agar simple)
         if (isVariantRequired) {
             const flavor = document.querySelector('input[name="noodle_flavor"]:checked').value;
             notes = `[Rasa: ${flavor}] ` + notes;

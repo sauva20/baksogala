@@ -6,9 +6,37 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Models\MenuItem; 
+use Carbon\Carbon; // Wajib untuk logika jam operasional
 
 class CartController extends Controller
 {
+    /**
+     * Helper: Mengecek apakah toko sedang buka berdasarkan jadwal
+     */
+    private function isStoreOpen()
+    {
+        $now = Carbon::now('Asia/Jakarta');
+        $day = $now->dayOfWeek; // 0 (Sun) - 6 (Sat)
+        $time = $now->format('H:i');
+
+        // 1. Senin: Libur
+        if ($day === Carbon::MONDAY) {
+            return false;
+        }
+
+        // 2. Selasa - Kamis & Minggu: 11.00 - 20.00
+        if (in_array($day, [Carbon::TUESDAY, Carbon::WEDNESDAY, Carbon::THURSDAY, Carbon::SUNDAY])) {
+            return ($time >= '11:00' && $time <= '20:00');
+        }
+
+        // 3. Jumat & Sabtu: 11.30 - 21.00
+        if (in_array($day, [Carbon::FRIDAY, Carbon::SATURDAY])) {
+            return ($time >= '11:30' && $time <= '21:00');
+        }
+
+        return false;
+    }
+
     private function getCartQuery()
     {
         if (Auth::check()) {
@@ -20,6 +48,9 @@ class CartController extends Controller
 
     public function index()
     {
+        // Cek status buka toko
+        $isOpen = $this->isStoreOpen();
+
         // 1. Ambil item keranjang
         $cartItems = $this->getCartQuery()
             ->join('menu_items', 'cart_items.menu_item_id', '=', 'menu_items.id')
@@ -28,30 +59,24 @@ class CartController extends Controller
                 'menu_items.name as menu_name', 
                 'menu_items.price as base_menu_price', 
                 'menu_items.image_url',
-                'menu_items.category' // Penting: Ambil kategori untuk filter charge
+                'menu_items.category' 
             )
             ->get();
 
         $subtotal = 0;
-        $totalPackagingFee = 0; // Variabel total biaya bungkus
+        $totalPackagingFee = 0; 
         $finalCartItems = []; 
         
-        // Ambil info session (apakah take away?)
         $isTakeAway = session('dining_option') == 'take_away';
-
-        // Daftar kategori/menu yang kena charge bungkus Rp 2.000
-        // Sesuaikan string ini dengan data di database Anda (Case Insensitive nanti di logic)
         $packagingChargeCategories = ['Bakso', 'Bakmie', 'Wonton']; 
-        $specificChargeMenus = ['Bakpau Telur Asin']; // Menu spesifik
+        $specificChargeMenus = ['Bakpau Telur Asin'];
 
         $allMenuItems = MenuItem::all()->keyBy('id');
 
         foreach ($cartItems as $item) {
-            
             $currentPrice = $item->base_menu_price;
             $addonNames = [];
 
-            // Hitung harga topping
             if (!empty($item->addons)) {
                 $addonIds = json_decode($item->addons, true);
                 if (is_array($addonIds)) {
@@ -64,12 +89,9 @@ class CartController extends Controller
                 }
             }
 
-            // --- LOGIKA BIAYA BUNGKUS (TAKE AWAY) ---
+            // LOGIKA BIAYA BUNGKUS
             $packagingFeePerItem = 0;
-            
             if ($isTakeAway) {
-                // Cek Kategori (Bakso, Bakmie, Wonton)
-                // Menggunakan stripos agar tidak sensitif huruf besar/kecil
                 $isCategoryMatch = false;
                 foreach ($packagingChargeCategories as $cat) {
                     if (stripos($item->category, $cat) !== false) {
@@ -78,7 +100,6 @@ class CartController extends Controller
                     }
                 }
 
-                // Cek Nama Menu Spesifik (Bakpau Telur Asin)
                 $isMenuMatch = false;
                 foreach ($specificChargeMenus as $menuName) {
                     if (stripos($item->menu_name, $menuName) !== false) {
@@ -88,12 +109,11 @@ class CartController extends Controller
                 }
 
                 if ($isCategoryMatch || $isMenuMatch) {
-                    $packagingFeePerItem = 2000; // Charge Rp 2.000 per porsi
+                    $packagingFeePerItem = 2000; 
                     $totalPackagingFee += ($packagingFeePerItem * $item->quantity);
                 }
             }
 
-            // Hitung total baris (Harga Menu + Topping) * Qty
             $lineTotal = $currentPrice * $item->quantity;
             $subtotal += $lineTotal;
 
@@ -106,11 +126,10 @@ class CartController extends Controller
                 'price' => $lineTotal, 
                 'notes' => $item->notes,
                 'addons_list' => implode(', ', $addonNames),
-                'packaging_fee' => $packagingFeePerItem // Info untuk view jika mau ditampilkan per item
+                'packaging_fee' => $packagingFeePerItem 
             ];
         }
 
-        // Ambil Menu Rekomendasi
         $cartMenuIds = $cartItems->pluck('menu_item_id')->toArray();
         $relatedMenus = MenuItem::whereNotIn('id', $cartMenuIds)
             ->whereNotIn('category', ['Tambahan', 'Side Dish', 'Topping']) 
@@ -118,11 +137,19 @@ class CartController extends Controller
             ->limit(5)
             ->get();
 
-        return view('cart.index', compact('finalCartItems', 'subtotal', 'totalPackagingFee', 'relatedMenus'));
+        return view('cart.index', compact('finalCartItems', 'subtotal', 'totalPackagingFee', 'relatedMenus', 'isOpen'));
     }
 
     public function addToCart(Request $request)
     {
+        // SECURITY CHECK: Blokir jika toko sedang tutup
+        if (!$this->isStoreOpen()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Maaf, pemesanan sedang tutup. Silakan cek jam operasional kami.'
+            ], 403);
+        }
+
         $request->validate([
             'menu_id' => 'required|exists:menu_items,id',
             'quantity' => 'required|integer|min:1',
