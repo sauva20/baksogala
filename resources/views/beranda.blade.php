@@ -6,9 +6,11 @@
     <title>Bakso Gala - Kelezatan Tiada Tara</title>
 
     {{-- Memanggil Aset --}}
-    <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/navbar.css') }}">
-    <link rel="icon" href="{{ asset('assets/images/GALA.png') }}" type="image/png">
+{{-- Memanggil Aset --}}
+<link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
+<link rel="stylesheet" href="{{ asset('assets/css/navbar.css') }}">
+{{-- Sesuaikan path favicon jika ada di dalam assets/images --}}
+<link rel="icon" href="{{ asset('assets/images/GALA.png') }}" type="image/png">
 
     {{-- Link Eksternal --}}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -16,58 +18,43 @@
 
     {{-- CSS Tambahan Khusus Slider Review --}}
     <style>
-        /* CONTAINER SLIDER */
         .testimonials-slider {
             display: flex;
             gap: 20px;
             overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
             padding: 20px 5px;
-            
-            /* Snap tetap ada agar manual scroll enak (nge-magnet) */
-            scroll-snap-type: x mandatory; 
-            
-            /* Transisi geser halus */
             scroll-behavior: smooth;
-            
-            /* Sembunyikan Scrollbar */
-            -ms-overflow-style: none;
-            scrollbar-width: none;
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
         }
-        
         .testimonials-slider::-webkit-scrollbar {
-            display: none;
+            display: none; /* Hide scrollbar for Chrome/Safari/Opera */
         }
-
-        /* KARTU REVIEW */
         .testimonial-card {
-            min-width: 300px;
-            max-width: 300px;
-            flex-shrink: 0;
+            min-width: 320px; /* Sedikit lebih lebar */
+            max-width: 320px;
             background: white;
             padding: 20px;
             border-radius: 15px;
             box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            text-align: left; /* Teks rata kiri biar lebih rapi dengan foto besar */
             border: 1px solid #eee;
-            text-align: left;
+            transition: transform 0.3s ease;
+            flex-shrink: 0;
             display: flex;
             flex-direction: column;
-            transition: transform 0.3s ease;
-            
-            /* Setiap kartu jadi titik berhenti magnet */
-            scroll-snap-align: center;
         }
-        
         .testimonial-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 15px 30px rgba(0,0,0,0.1);
         }
         
+        /* FOTO CUSTOMER: DIBUAT BESAR & JELAS (ASPEK RASIO 4:3 atau 16:9) */
         .customer-photo {
             width: 100%;
-            height: 200px;
+            height: 200px; /* Tinggi fix agar seragam */
             margin-bottom: 15px;
-            border-radius: 10px;
+            border-radius: 10px; /* Sudut membulat */
             overflow: hidden;
             border: 1px solid #eee;
             background-color: #f9f9f9;
@@ -75,14 +62,18 @@
         .customer-photo img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: cover; /* Agar foto memenuhi kotak tanpa gepeng */
+            transition: transform 0.3s ease;
+        }
+        .testimonial-card:hover .customer-photo img {
+            transform: scale(1.05); /* Efek zoom dikit saat hover */
         }
 
         .customer-name {
             font-weight: 800;
             color: #2F3D65;
             font-size: 1.1rem;
-            margin-top: auto;
+            margin-top: auto; /* Dorong ke bawah */
         }
         .ai-badge {
             background: #e8f5e9; color: #2e7d32;
@@ -107,67 +98,93 @@
         </div>
     </section>
 
-    {{-- ... (Section About Us & Menu Preview tetap seperti kode asli Anda) ... --}}
+    {{-- ABOUT US --}}
     <section class="about-us-section">
         <div class="container">
             <h2>Tentang Bakso Gala</h2>
-            <p>Bakso Gala hadir untuk memuaskan hasrat Anda akan bakso otentik dengan cita rasa yang tak terlupakan.</p>
+            <p>Bakso Gala hadir untuk memuaskan hasrat Anda akan bakso otentik dengan cita rasa yang tak terlupakan. Kami menggunakan bahan-bahan segar pilihan dan resep turun-temurun.</p>
             <div class="features-grid">
-                <div class="feature-item"><i class="fas fa-leaf"></i><h3>Bahan Segar</h3></div>
-                <div class="feature-item"><i class="fas fa-utensils"></i><h3>Resep Autentik</h3></div>
-                <div class="feature-item"><i class="fas fa-home"></i><h3>Suasana Nyaman</h3></div>
+                <div class="feature-item">
+                    <i class="fas fa-leaf"></i>
+                    <h3>Bahan Segar Berkualitas</h3>
+                    <p>Kami hanya menggunakan daging sapi dan bahan baku terbaik, dipilih langsung dari peternak lokal.</p>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-utensils"></i>
+                    <h3>Resep Autentik Warisan</h3>
+                    <p>Diwariskan dari generasi ke generasi, resep kami menjamin cita rasa bakso yang kaya dan khas.</p>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-home"></i>
+                    <h3>Suasana Nyaman</h3>
+                    <p>Nikmati hidangan Anda dalam suasana kafe yang hangat, bersih, dan ramah keluarga.</p>
+                </div>
             </div>
         </div>
     </section>
 
+    {{-- MENU PREVIEW --}}
     <section class="menu-preview-section">
         <div class="container">
             <h2>Cicipi Kelezatan Andalan Kami</h2>
             <div class="menu-items-grid">
                 @forelse($menu_items as $item)
                     <div class="menu-item">
-                        <img src="{{ asset($item->image_url) }}" alt="{{ $item->name }}">
+                        {{-- Bagian Menu Preview --}}
+<img src="{{ asset($item->image_url) }}" alt="{{ $item->name }}">
                         <h3>{{ $item->name }}</h3>
                         <p>{{ Str::limit($item->description, 60) }}</p>
                         <span class="price">Rp {{ number_format($item->price, 0, ',', '.') }}</span>
                     </div>
                 @empty
-                    <p class="text-center" style="grid-column: 1/-1;">Belum ada menu.</p>
+                    <p class="text-center" style="grid-column: 1/-1;">Belum ada menu yang ditampilkan di beranda.</p>
                 @endforelse
             </div>
             <a href="{{ url('/menu') }}" class="btn btn-secondary">Lihat Menu Lengkap</a>
         </div>
     </section>
 
-    {{-- TESTIMONIALS (AUTO SLIDE FIX) --}}
+    {{-- TESTIMONIALS (DINAMIS DARI DATABASE & AI) --}}
     <section class="testimonials-section">
         <div class="container">
             <h2>Kata Mereka Tentang Bakso Gala</h2>
             
+            {{-- Cek apakah ada review dari Controller --}}
             @if(isset($reviews) && $reviews->count() > 0)
-                <div class="testimonials-slider" id="reviewSlider">
-                    @foreach($reviews->sortByDesc('created_at') as $review)
+                <div class="testimonials-slider">
+                    @foreach($reviews as $review)
                         <div class="testimonial-card">
-                            <div class="customer-photo">
-                                @if($review->photo)
-                                    <img src="{{ asset('uploads/' . $review->photo) }}" alt="Foto Review">
-                                @else
-                                    <div style="width:100%; height:100%; background:#f0f0f0; display:flex; align-items:center; justify-content:center;">
-                                         <i class="fas fa-image" style="font-size: 3rem; color:#ccc;"></i>
-                                    </div>
-                                @endif
-                            </div>
+                            {{-- Foto Customer (BESAR & JELAS) --}}
+<div class="customer-photo">
+    @if($review->photo)
+        {{-- PERBAIKAN: Tambahkan 'uploads/' di depan variabel --}}
+        <img src="{{ asset('uploads/' . $review->photo) }}" alt="Foto Review">
+    @else
+        {{-- Fallback jika foto tidak ada --}}
+        <div style="width:100%; height:100%; background:#f0f0f0; display:flex; align-items:center; justify-content:center;">
+             <i class="fas fa-image" style="font-size: 3rem; color:#ccc;"></i>
+        </div>
+    @endif
+</div>
 
+                            {{-- Bintang Rating --}}
                             <div style="color: #ffc700; margin-bottom: 10px; font-size: 0.9rem;">
-                                @for($i=0; $i < $review->rating; $i++) <i class="fas fa-star"></i> @endfor
+                                @for($i=0; $i < $review->rating; $i++)
+                                    <i class="fas fa-star"></i>
+                                @endfor
                             </div>
 
+                            {{-- Komentar --}}
                             <p style="font-style: italic; color: #555; font-size: 0.95rem; line-height: 1.5; margin-bottom: 15px;">
                                 "{{ Str::limit($review->comment, 120) }}"
                             </p>
 
-                            <cite class="customer-name">- {{ $review->order->customer_name ?? 'Pelanggan Setia' }}</cite>
+                            {{-- Nama Customer --}}
+                            <cite class="customer-name">
+                                - {{ $review->order->customer_name ?? 'Pelanggan Setia' }}
+                            </cite>
 
+                            {{-- Badge AI --}}
                             <div class="ai-badge">
                                 <i class="fas fa-check-circle"></i> Pilihan AI
                             </div>
@@ -175,31 +192,71 @@
                     @endforeach
                 </div>
             @else
+                {{-- Tampilan Default (Fallback) Jika Belum Ada Review --}}
                 <div class="testimonials-slider">
                     <div class="testimonial-card">
-                        <p>"Jadilah orang pertama yang memberikan ulasan!"</p>
+                        <div class="customer-photo">
+                            <div style="width:100%; height:100%; background:#f0f0f0; display:flex; align-items:center; justify-content:center; color:#ccc;">
+                                <i class="fas fa-store" style="font-size: 3rem;"></i>
+                            </div>
+                        </div>
+                        <p>"Jadilah orang pertama yang memberikan ulasan terbaik Anda dan tampil di sini!"</p>
+                        <cite class="customer-name">- Admin Bakso Gala</cite>
                     </div>
                 </div>
             @endif
+
         </div>
     </section>
 
+    {{-- CTA FINAL --}}
     <section class="cta-final-section">
         <div class="container">
             <h2>Siap Menikmati Kelezatan Bakso Gala?</h2>
-            <p>Pesan online sekarang!</p>
+            <p>Kunjungi kami langsung atau pesan online sekarang!</p>
+            <p class="contact-info-footer">Jl. Otto Iskandardinata No.115, Karanganyar, Kec. Subang, Kabupaten Subang, Jawa Barat 41211</p>
+            <p class="contact-info-footer">Contact: <a href="tel:+62221234567">+62 881-0816-31531</a></p>
         </div>
     </section>
 </main>
 
 <footer>
     <div class="container">
-        <p>&copy; 2025 Bakso Gala. Semua Hak Dilindungi.</p>
+        <div class="footer-cols">
+            <div class="footer-col">
+                <h3>Bakso Gala</h3>
+                <p>Bakso Gala hadir untuk kelezatan sejati. Nikmati hidangan bakso otentik yang dibuat dengan cinta.</p>
+            </div>
+            <div class="footer-col">
+                <h3>Informasi</h3>
+                <ul>
+                    <li><a href="{{ url('/tentang-kami') }}">Tentang Kami</a></li>
+                    <li><a href="{{ url('/menu') }}">Menu</a></li>
+                    <li><a href="{{ url('/faq') }}">FAQ</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h3>Hubungi Kami</h3>
+                <p>Jl. Otto Iskandardinata No.115, Subang</p>
+                <p>Email: baksocapgala@gmail.com</p>
+            </div>
+            <div class="footer-col">
+                <h3>Ikuti Kami</h3>
+                <div class="social-links">
+                    <a href="#" target="_blank"><i class="fab fa-instagram"></i></a>
+                    <a href="#" target="_blank"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" target="_blank"><i class="fab fa-tiktok"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>&copy; 2025 Bakso Gala. Semua Hak Dilindungi.</p>
+        </div>
     </div>
 </footer>
 
 <script>
-    // --- 1. LOGIKA HAMBURGER MENU ---
+    // --- 1. LOGIKA HAMBURGER MENU (YANG LAMA) ---
     const hamburger = document.getElementById('hamburgerMenu');
     if (hamburger) {
         hamburger.addEventListener('click', function() {
@@ -207,44 +264,59 @@
         });
     }
 
-    // --- 2. LOGIKA AUTO SCROLL (PER KARTU / CARD-BY-CARD) ---
+    // --- 2. LOGIKA AUTO SCROLL SLIDER ---
     document.addEventListener("DOMContentLoaded", function() {
-        const slider = document.getElementById('reviewSlider');
-        if (!slider) return;
-
-        let autoSlideInterval;
-
-        const startAutoSlide = () => {
-            autoSlideInterval = setInterval(() => {
-                // Hitung lebar 1 kartu + gap 20px
-                const firstCard = slider.querySelector('.testimonial-card');
-                if (!firstCard) return;
-                
-                const cardWidth = firstCard.offsetWidth + 20; 
-
-                // Jika sudah sampai ujung kanan (toleransi 10px)
-                if (slider.scrollLeft + slider.clientWidth >= slider.scrollWidth - 10) {
-                    // Balik ke paling awal
-                    slider.scrollTo({ left: 0, behavior: 'smooth' });
-                } else {
-                    // Geser ke kartu berikutnya
-                    slider.scrollBy({ left: cardWidth, behavior: 'smooth' });
-                }
-            }, 3000); // Geser setiap 3 detik
-        };
-
-        const stopAutoSlide = () => clearInterval(autoSlideInterval);
-
-        // Jalankan slide otomatis
-        startAutoSlide();
-
-        // Pause otomatis kalau user sedang menyentuh atau klik slider (Interaksi Manual)
-        slider.addEventListener('touchstart', stopAutoSlide);
-        slider.addEventListener('mousedown', stopAutoSlide);
+        const slider = document.querySelector('.testimonials-slider');
         
-        // Lanjut lagi kalau jari/mouse dilepas
-        slider.addEventListener('touchend', startAutoSlide);
-        slider.addEventListener('mouseup', startAutoSlide);
+        // Cek jika slider ada isinya
+        if (slider) {
+            let isDown = false;
+            let startX;
+            let scrollLeft;
+            let autoScrollInterval;
+
+            // Fungsi untuk menjalankan Auto Scroll
+            const startAutoScroll = () => {
+                autoScrollInterval = setInterval(() => {
+                    // Cek lebar kartu pertama + gap (20px)
+                    const cardWidth = slider.querySelector('.testimonial-card').offsetWidth + 20; 
+                    
+                    // Cek apakah sudah mentok kanan?
+                    const maxScrollLeft = slider.scrollWidth - slider.clientWidth;
+                    
+                    if (slider.scrollLeft >= maxScrollLeft - 10) {
+                        // Jika mentok kanan, balik ke awal dengan smooth
+                        slider.scrollTo({ left: 0, behavior: 'smooth' });
+                    } else {
+                        // Scroll ke kanan 1 kartu
+                        slider.scrollBy({ left: cardWidth, behavior: 'smooth' });
+                    }
+                }, 3000); // Ganti 3000 dengan kecepatan (3000ms = 3 detik)
+            };
+
+            // Fungsi untuk Stop Auto Scroll
+            const stopAutoScroll = () => {
+                clearInterval(autoScrollInterval);
+            };
+
+            // Jalankan Auto Scroll saat halaman dimuat
+            startAutoScroll();
+
+            // --- FITUR PINTAR: STOP SAAT DISENTUH USER ---
+            
+            // Saat Mouse/Jari masuk ke area slider -> STOP
+            slider.addEventListener('mouseenter', stopAutoScroll);
+            slider.addEventListener('touchstart', stopAutoScroll, { passive: true });
+
+            // Saat Mouse/Jari keluar dari area slider -> JALAN LAGI
+            slider.addEventListener('mouseleave', startAutoScroll);
+            slider.addEventListener('touchend', startAutoScroll);
+            
+            // Deteksi scroll manual user (opsional, biar lebih responsif)
+            slider.addEventListener('scroll', () => {
+                // Bisa dikosongkan, browser handle manual scroll secara native
+            });
+        }
     });
 </script>
 
