@@ -21,7 +21,13 @@
             gap: 20px;
             overflow-x: auto;
             padding: 20px 5px;
-            scroll-behavior: smooth;
+            
+            /* PERBAIKAN 1: Paksa konten mulai dari kiri (flex-start) bukan tengah */
+            justify-content: flex-start !important;
+            
+            /* PERBAIKAN 2: scroll-behavior harus 'auto' agar teleportasi loop tidak kelihatan mundur */
+            scroll-behavior: auto !important; 
+            
             -ms-overflow-style: none;  /* IE and Edge */
             scrollbar-width: none;  /* Firefox */
         }
@@ -29,13 +35,13 @@
             display: none; /* Hide scrollbar for Chrome/Safari/Opera */
         }
         .testimonial-card {
-            min-width: 320px; /* Sedikit lebih lebar */
+            min-width: 320px; 
             max-width: 320px;
             background: white;
             padding: 20px;
             border-radius: 15px;
             box-shadow: 0 10px 20px rgba(0,0,0,0.05);
-            text-align: left; /* Teks rata kiri biar lebih rapi dengan foto besar */
+            text-align: left; 
             border: 1px solid #eee;
             transition: transform 0.3s ease;
             flex-shrink: 0;
@@ -47,12 +53,11 @@
             box-shadow: 0 15px 30px rgba(0,0,0,0.1);
         }
         
-        /* FOTO CUSTOMER: DIBUAT BESAR & JELAS (ASPEK RASIO 4:3 atau 16:9) */
         .customer-photo {
             width: 100%;
-            height: 200px; /* Tinggi fix agar seragam */
+            height: 200px; 
             margin-bottom: 15px;
-            border-radius: 10px; /* Sudut membulat */
+            border-radius: 10px; 
             overflow: hidden;
             border: 1px solid #eee;
             background-color: #f9f9f9;
@@ -60,18 +65,18 @@
         .customer-photo img {
             width: 100%;
             height: 100%;
-            object-fit: cover; /* Agar foto memenuhi kotak tanpa gepeng */
+            object-fit: cover; 
             transition: transform 0.3s ease;
         }
         .testimonial-card:hover .customer-photo img {
-            transform: scale(1.05); /* Efek zoom dikit saat hover */
+            transform: scale(1.05); 
         }
 
         .customer-name {
             font-weight: 800;
             color: #2F3D65;
             font-size: 1.1rem;
-            margin-top: auto; /* Dorong ke bawah */
+            margin-top: auto; 
         }
         .ai-badge {
             background: #e8f5e9; color: #2e7d32;
@@ -252,12 +257,14 @@
         });
     }
 
-    // --- 2. CONTINUOUS AUTO SCROLL (LOGIKA BARU) ---
+    // --- 2. CONTINUOUS AUTO SCROLL ---
     document.addEventListener("DOMContentLoaded", function() {
         const slider = document.querySelector('.testimonials-slider');
         
+        // Cek jika slider ada dan punya anak (card)
         if (slider && slider.children.length > 0) {
-            // Gandakan isi slider untuk efek looping tanpa putus
+            
+            // Gandakan isi slider (minimal 2x) agar loop tidak terputus
             const content = slider.innerHTML;
             slider.innerHTML += content; 
             
@@ -268,8 +275,8 @@
                 if (!isHovered) {
                     slider.scrollLeft += speed;
                     
-                    // Jika sudah sampai di setengah (akhir konten asli), reset ke nol
-                    if (slider.scrollLeft >= slider.scrollWidth / 2) {
+                    // Reset ke 0 secara instan jika sudah sampai di setengah lebar total (akhir konten asli)
+                    if (slider.scrollLeft >= (slider.scrollWidth / 2)) {
                         slider.scrollLeft = 0;
                     }
                 }
@@ -279,7 +286,7 @@
             // Jalankan animasi
             move();
 
-            // Berhenti saat disentuh/hover agar user bisa baca
+            // Event listener untuk pause saat interaksi
             slider.addEventListener('mouseenter', () => isHovered = true);
             slider.addEventListener('mouseleave', () => isHovered = false);
             slider.addEventListener('touchstart', () => isHovered = true);
