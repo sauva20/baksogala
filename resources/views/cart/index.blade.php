@@ -167,8 +167,10 @@
     @if(isset($finalCartItems) && count($finalCartItems) > 0)
 
         @php
-            $appFee = $subtotal * 0.007;
-            $finalTotal = ceil($subtotal + $appFee);
+            // Hitung Total (Subtotal + Biaya Bungkus) untuk dasar AppFee
+            $subtotalWithPackaging = $subtotal + $totalPackagingFee;
+            $appFee = $subtotalWithPackaging * 0.007;
+            $finalTotal = ceil($subtotalWithPackaging + $appFee);
 
             // --- LOGIC TAMPILAN TEMPAT & MEJA ---
             $diningOption = session('dining_option', 'dine_in'); 
@@ -284,14 +286,25 @@
         {{-- Ringkasan Bayar --}}
         <div class="payment-summary">
             <div class="summary-title">Rincian Pembayaran</div>
+            
             <div class="summary-row">
                 <span>Subtotal</span>
                 <span>Rp {{ number_format($subtotal, 0, ',', '.') }}</span>
             </div>
+
+            {{-- TAMBAHAN: TAMPILKAN BIAYA BUNGKUS JIKA ADA --}}
+            @if($totalPackagingFee > 0)
+            <div class="summary-row" style="color: #d32f2f;">
+                <span>Biaya Kemasan (Take Away)</span>
+                <span>+ Rp {{ number_format($totalPackagingFee, 0, ',', '.') }}</span>
+            </div>
+            @endif
+
             <div class="summary-row">
                 <span>Biaya Layanan (0.7%)</span>
                 <span>Rp {{ number_format($appFee, 0, ',', '.') }}</span>
             </div>
+            
             <div class="summary-row total">
                 <span>Total</span>
                 <span>Rp {{ number_format($finalTotal, 0, ',', '.') }}</span>
@@ -347,13 +360,15 @@
                     </select>
                     
                     <div id="swal-table-box" style="display:{{ session('dining_option', 'dine_in') == 'dine_in' ? 'block' : 'none' }}">
-                        {{-- 3 AREA PILIHAN YANG DIMINTA --}}
+                        {{-- PILIHAN AREA --}}
                         <label style="font-weight:bold; display:block; margin-bottom:5px;">Pilih Area:</label>
                         <select id="swal-area" class="swal2-input" style="width:100%; margin:0 0 15px;">
                             <option value="">-- Pilih Area --</option>
                             <option value="Lantai 2 Gym" {{ session('table_area') == 'Lantai 2 Gym' ? 'selected' : '' }}>Lantai 2 Gym</option>
                             <option value="Indoor More" {{ session('table_area') == 'Indoor More' ? 'selected' : '' }}>Indoor More</option>
                             <option value="Depan Utama" {{ session('table_area') == 'Depan Utama' ? 'selected' : '' }}>Depan Utama</option>
+                            {{-- PENAMBAHAN AREA BARU --}}
+                            <option value="Photobooth" {{ session('table_area') == 'Photobooth' ? 'selected' : '' }}>Area Photobooth</option>
                         </select>
 
                         <label style="font-weight:bold; display:block; margin-bottom:5px;">Nomor Meja:</label>
