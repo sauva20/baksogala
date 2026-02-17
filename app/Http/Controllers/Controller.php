@@ -32,7 +32,7 @@ abstract class Controller
 
         // 2. SERVER KEY FIREBASE (Legacy)
         // GANTI DENGAN SERVER KEY ASLI DARI FIREBASE CONSOLE ANDA
-        $serverKey = 'MASUKKAN_SERVER_KEY_PANJANG_ANDA_DISINI'; 
+        $serverKey = 'AIzaSyDmAom7VDb0OkTijt0Hf5UE3YB1kuNvywA'; 
 
         // 3. Siapkan Data Notifikasi
         $data = [
