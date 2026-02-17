@@ -8,6 +8,17 @@
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
     
     <style>
+        /* FIX PAGINATION NGEBUG (BIAR GAK VERTIKAL) */
+        nav[role="navigation"] svg { width: 20px; } /* Ukuran panah pagination */
+        .pagination { display: flex; list-style: none; padding: 0; gap: 5px; justify-content: center; }
+        .pagination li { display: inline-block; }
+        .pagination li a, .pagination li span { 
+            padding: 8px 14px; border: 1px solid #ddd; border-radius: 5px; 
+            text-decoration: none; color: #2c3e50; background: white;
+        }
+        .pagination li.active span { background-color: #B1935B; color: white; border-color: #B1935B; }
+        .pagination li.disabled span { color: #ccc; }
+
         /* CSS POPUP DETAIL (MODAL) */
         .modal {
             display: none; 
@@ -84,19 +95,17 @@
         <button class="btn-refresh" onclick="location.reload()"><i class="fas fa-sync-alt"></i> Refresh</button>
     </div>
 
-    {{-- Tabs (UPDATED: Added 'Hari Ini') --}}
+    {{-- Tabs --}}
     <div class="status-tabs-container">
         @php $s = request('status', 'today'); @endphp
         
-        {{-- Tab Utama: HARI INI --}}
         <a href="{{ route('admin.orders.index', ['status' => 'today']) }}" 
            class="status-tab {{ $s == 'today' ? 'today-active' : '' }}">
-           <i class="fas fa-calendar-day"></i> HARI INI
+            <i class="fas fa-calendar-day"></i> HARI INI
         </a>
 
         <div style="border-left: 2px solid #ddd; height: 30px; margin: 0 10px;"></div>
 
-        {{-- Tab Filter Status --}}
         <a href="{{ route('admin.orders.index', ['status' => 'new']) }}" class="status-tab {{ $s == 'new' ? 'active' : '' }}">Baru</a>
         <a href="{{ route('admin.orders.index', ['status' => 'preparing']) }}" class="status-tab {{ $s == 'preparing' ? 'active' : '' }}">Dimasak</a>
         <a href="{{ route('admin.orders.index', ['status' => 'ready']) }}" class="status-tab {{ $s == 'ready' ? 'active' : '' }}">Siap</a>
@@ -104,7 +113,6 @@
         <a href="{{ route('admin.orders.index', ['status' => 'all']) }}" class="status-tab {{ $s == 'all' ? 'active' : '' }}">Semua Riwayat</a>
     </div>
 
-    {{-- Table --}}
     <div class="card-panel">
         <div class="table-responsive">
             <table class="table-custom">
@@ -113,7 +121,6 @@
                 </thead>
                 <tbody>
                     @forelse ($orders as $order)
-                        {{-- Highlight Pesanan Baru --}}
                         <tr style="{{ in_array($order->status, ['new', 'pending', 'process', 'paid']) ? 'background-color: #fffde7;' : '' }}">
                             <td><span class="order-id">#{{ $order->id }}</span></td>
                             <td><strong>{{ $order->customer_name }}</strong><br><small class="text-muted">{{ $order->customer_phone }}</small></td>
@@ -147,7 +154,6 @@
 
                             <td class="text-right">
                                 <div class="action-buttons">
-                                    {{-- LOGIC TOMBOL --}}
                                     @if(in_array($order->status, ['new', 'pending', 'process', 'paid']))
                                         <form action="{{ route('admin.orders.updateStatus', $order->id) }}" method="POST" class="form-update-status">
                                             @csrf @method('PATCH')
@@ -183,7 +189,10 @@
                 </tbody>
             </table>
         </div>
-        <div class="mt-4 d-flex justify-content-center">{{ $orders->withQueryString()->links() }}</div>
+        {{-- PAGINATION --}}
+        <div class="mt-4 d-flex justify-content-center">
+            {{ $orders->withQueryString()->links() }}
+        </div>
     </div>
 </div>
 
@@ -226,7 +235,6 @@
             </div>
         </div>
         <div class="modal-footer">
-            {{-- Tombol Cetak Struk (DIARAHKAN KE ROUTE KHUSUS) --}}
             <a href="#" id="modalPrintLink" target="_blank" class="btn-icon btn-detail" style="width: auto; padding: 0 15px; text-decoration: none; font-size: 0.9em; height: 35px; line-height: 35px;">
                 <i class="fas fa-print"></i> Cetak Struk
             </a>
@@ -236,7 +244,6 @@
 @endsection
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     const modal = document.getElementById("orderDetailModal");
     
@@ -255,13 +262,9 @@
                     document.getElementById("modalCustPhone").innerText = order.customer_phone;
                     document.getElementById("modalTable").innerText = order.shipping_address;
                     document.getElementById("modalNote").innerText = order.notes || '-';
-                    
-                    // --- PERBAIKAN LINK CETAK (MENUJU ROUTE /CETAK) ---
                     document.getElementById("modalPrintLink").href = `/pesanan/${order.id}/cetak`;
                     
-                    // --- FIX BUG STATUS PEMBAYARAN DI MODAL (UPDATED) ---
                     const badge = document.getElementById("modalPaymentStatusBadge");
-                    // Pastikan cek case insensitive
                     if(order.payment_status && order.payment_status.toLowerCase() === 'paid') {
                         badge.className = 'badge-payment paid';
                         badge.innerHTML = '<i class="fas fa-check-circle"></i> LUNAS';
@@ -272,7 +275,6 @@
 
                     let itemsHtml = '';
                     let calculatedSubtotal = 0;
-
                     data.items.forEach(item => {
                         let price = parseInt(item.price.replace(/\./g, ''));
                         let sub = price * item.quantity;
@@ -302,6 +304,7 @@
                 }
             });
     }
+
     function closeModal() { modal.classList.remove('show'); }
     window.onclick = function(e) { if(e.target == modal) closeModal(); }
 
