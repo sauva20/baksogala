@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Order;
+use App\Models\User;
+use Illuminate\Support\Facades\Http;
 use Midtrans\Config;
 use Midtrans\Notification;
 
@@ -25,10 +27,9 @@ class CallbackController extends Controller
             $notif = new Notification();
 
             $transaction = $notif->transaction_status;
-            $type = $notif->payment_type;
             $orderId = $notif->order_id; // Contoh: "12-1738500000"
             
-            // 2. Ambil ID Order Asli (Buang angka unik di belakang strip)
+            // 2. Ambil ID Order Asli
             $realOrderId = explode('-', $orderId)[0];
             
             // 3. Cari Order di Database
@@ -38,9 +39,9 @@ class CallbackController extends Controller
                 return response()->json(['message' => 'Order not found'], 404);
             }
 
-            // Jika sudah lunas, jangan diubah lagi
+            // Jika status database sudah lunas, jangan diproses ulang (cegah duplikasi notif)
             if ($order->payment_status == 'paid') {
-                return response()->json(['message' => 'Order already paid']);
+                return response()->json(['message' => 'Order already processed']);
             }
 
             // 4. Update Status Berdasarkan Laporan Midtrans
@@ -49,26 +50,18 @@ class CallbackController extends Controller
                 // A. UPDATE STATUS JADI LUNAS
                 $order->update([
                     'payment_status' => 'paid',
-                    'status' => 'process' // Langsung ubah jadi diproses
+                    'status' => 'process' // Langsung ubah ke 'diproses' agar masuk tab dapur
                 ]);
 
-                // ==========================================================
-                // B. [TAMBAHAN] BUNYIKAN NOTIFIKASI KE OWNER/KASIR
-                // ==========================================================
-                // Panggil fungsi yang sudah kita buat di Controller.php utama
-                $this->sendNotifToAdmin(
-                    "Pesanan Masuk #{$order->id}", 
-                    "Lunas! Pesanan senilai Rp " . number_format($order->total_price) . " telah dibayar via Midtrans."
-                );
-                // ==========================================================
+                // B. KIRIM NOTIFIKASI BERLAPIS (Hanya saat lunas)
+                $this->sendNotificationToAdmin($order);
+                $this->sendTelegramNotif($order);
 
             } 
             else if ($transaction == 'pending') {
-                // STATUS: MENUNGGU
                 $order->update(['payment_status' => 'pending']);
             } 
             else if ($transaction == 'deny' || $transaction == 'expire' || $transaction == 'cancel') {
-                // STATUS: GAGAL / KADALUARSA
                 $order->update([
                     'payment_status' => 'failed',
                     'status' => 'cancelled'
@@ -80,5 +73,68 @@ class CallbackController extends Controller
         } catch (\Exception $e) {
             return response()->json(['message' => 'Error: ' . $e->getMessage()], 500);
         }
+    }
+
+    /**
+     * FUNGSI 1: NOTIFIKASI TELEGRAM
+     */
+    private function sendTelegramNotif($order)
+    {
+        $token = env('TELEGRAM_BOT_TOKEN');
+        $chatId = env('TELEGRAM_CHAT_ID');
+
+        if (!$token || !$chatId) return;
+
+        $message = "💰 *PESANAN LUNAS!* 💰\n\n";
+        $message .= "🆔 *Order ID:* #{$order->id}\n";
+        $message .= "👤 *Pelanggan:* {$order->customer_name}\n";
+        $message .= "📍 *Lokasi:* {$order->shipping_address}\n";
+        $message .= "🍲 *Tipe:* {$order->order_type}\n";
+        $message .= "💰 *Total:* Rp " . number_format($order->total_price, 0, ',', '.') . "\n\n";
+        $message .= "✅ *Segera siapkan pesanan di dapur!*";
+
+        Http::post("https://api.telegram.org/bot{$token}/sendMessage", [
+            'chat_id' => $chatId,
+            'text' => $message,
+            'parse_mode' => 'Markdown'
+        ]);
+    }
+
+    /**
+     * FUNGSI 2: NOTIFIKASI FIREBASE (WEB PUSH)
+     */
+    private function sendNotificationToAdmin($order)
+    {
+        // Cari admin/owner yang punya fcm_token
+        $tokens = User::whereIn('role', ['owner', 'admin'])
+                      ->whereNotNull('fcm_token')
+                      ->pluck('fcm_token')
+                      ->toArray();
+
+        if (empty($tokens)) return;
+
+        $serverKey = env('FIREBASE_SERVER_KEY');
+        $url = 'https://fcm.googleapis.com/fcm/send';
+
+        $payload = [
+            "registration_ids" => $tokens,
+            "notification" => [
+                "title" => "💰 PESANAN LUNAS!",
+                "body" => "Order #{$order->id} dari {$order->customer_name} SUDAH DIBAYAR.",
+                "icon" => asset('assets/images/GALA.png'),
+                "sound" => "default",
+                "click_action" => url('/admin/orders')
+            ],
+            "data" => [
+                "order_id" => $order->id
+            ],
+            "priority" => "high",
+            "content_available" => true
+        ];
+
+        Http::withHeaders([
+            'Authorization' => 'key=' . $serverKey,
+            'Content-Type' => 'application/json',
+        ])->post($url, $payload);
     }
 }

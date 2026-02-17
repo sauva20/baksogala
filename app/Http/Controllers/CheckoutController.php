@@ -213,9 +213,8 @@ class CheckoutController extends Controller
             $order->order_notes = $request->order_notes;
             $order->save();
 
-            // --- KIRIM NOTIFIKASI BERLAPIS (FIREBASE + TELEGRAM) ---
-            $this->sendNotificationToAdmin($order);
-            $this->sendTelegramNotif($order);
+            // --- NOTIFIKASI DIHAPUS DARI SINI ---
+            // Agar tidak bunyi saat orang baru checkout (belum bayar)
 
             foreach ($rawCartItems as $item) {
                 $detail = new OrderDetail();
@@ -279,7 +278,7 @@ class CheckoutController extends Controller
             session()->forget(['table_number', 'table_area']); 
 
             DB::commit();
-            return redirect()->route('orders.show', $order->id)->with('success', 'Pesanan dibuat!');
+            return redirect()->route('orders.show', $order->id)->with('success', 'Pesanan dibuat! Silakan lakukan pembayaran.');
 
         } catch (\Exception $e) {
             DB::rollback();
@@ -288,7 +287,8 @@ class CheckoutController extends Controller
     }
 
     /**
-     * FUNGSI 1: KIRIM TELEGRAM BOT (ANTI-GAGAL)
+     * FUNGSI 1: KIRIM TELEGRAM BOT
+     * (Panggil fungsi ini di Payment Callback saat status = settlement)
      */
     private function sendTelegramNotif($order)
     {
@@ -297,14 +297,12 @@ class CheckoutController extends Controller
 
         if (!$token || !$chatId) return;
 
-        $message = "🔔 *ADA PESANAN BARU!* 🔔\n\n";
+        $message = "💰 *PESANAN LUNAS!* 💰\n\n";
         $message .= "🆔 *Order ID:* #{$order->id}\n";
         $message .= "👤 *Pelanggan:* {$order->customer_name}\n";
         $message .= "📍 *Lokasi:* {$order->shipping_address}\n";
-        $message .= "🍲 *Tipe:* {$order->order_type}\n";
-        $message .= "💰 *Total:* Rp " . number_format($order->total_price, 0, ',', '.') . "\n";
-        $message .= "📝 *Catatan:* " . ($order->order_notes ?? '-') . "\n\n";
-        $message .= "✅ *Segera cek dashboard admin!*";
+        $message .= "💰 *Total:* Rp " . number_format($order->total_price, 0, ',', '.') . "\n\n";
+        $message .= "✅ *Segera proses pesanan di dapur!*";
 
         Http::post("https://api.telegram.org/bot{$token}/sendMessage", [
             'chat_id' => $chatId,
@@ -315,6 +313,7 @@ class CheckoutController extends Controller
 
     /**
      * FUNGSI 2: KIRIM FIREBASE (WEB PUSH)
+     * (Panggil fungsi ini di Payment Callback saat status = settlement)
      */
     private function sendNotificationToAdmin($order)
     {
@@ -331,8 +330,8 @@ class CheckoutController extends Controller
         $payload = [
             "registration_ids" => $tokens,
             "notification" => [
-                "title" => "🔔 PESANAN BARU MASUK!",
-                "body" => "Order #{$order->id} dari {$order->customer_name}. Cek sekarang!",
+                "title" => "💰 PESANAN LUNAS!",
+                "body" => "Order #{$order->id} dari {$order->customer_name} SUDAH DIBAYAR. Cek sekarang!",
                 "icon" => asset('assets/images/GALA.png'),
                 "sound" => "default",
                 "click_action" => url('/admin/orders')

@@ -46,7 +46,7 @@ class OrderController extends Controller
         $order = Order::findOrFail($id);
         $order->status = $request->status;
         
-        // Logic Tambahan: Jika status diubah jadi 'ready' atau 'completed'
+        // Jika status diubah jadi 'ready' atau 'completed', otomatis lunas
         if (in_array($request->status, ['ready', 'completed'])) {
             $order->payment_status = 'paid';
         }
@@ -56,21 +56,24 @@ class OrderController extends Controller
         return redirect()->back()->with('success', 'Status pesanan berhasil diperbarui!');
     }
 
-    // --- API: CEK PESANAN BARU (UNTUK TEST NOTIFIKASI MASUK) ---
+    // --- API: CEK PESANAN BARU (KHUSUS YANG SUDAH LUNAS) ---
+    // Dipanggil oleh Javascript (setInterval) setiap 5 detik
     public function checkNewOrders(Request $request)
     {
         $clientLastId = $request->input('last_id', 0);
 
-        // 1. LOGIKA AUTO-CANCEL (Tetap dibiarkan untuk kebersihan data)
+        // 1. LOGIKA AUTO-CANCEL (Kebersihan Data)
+        // Batalkan pesanan 'new' yang belum bayar lebih dari 10 menit
         Order::where('status', 'new')
              ->where('payment_status', 'pending')
              ->where('created_at', '<', Carbon::now()->subMinutes(10))
              ->update(['status' => 'cancelled']);
 
-        // 2. CEK PESANAN BARU (TRIGGER SAAT MASUK)
-        // Kita hapus filter ->where('payment_status', 'paid') agar notif langsung bunyi
+        // 2. CEK PESANAN BARU (HANYA YANG SUDAH PAID)
+        // Kita kembalikan filter 'paid' agar tidak sembarang pesanan masuk ke dapur
         $newOrder = Order::where('id', '>', $clientLastId)
-            ->where('status', '!=', 'cancelled') // Jangan beri notif jika sudah batal
+            ->where('payment_status', 'paid') // <--- FILTER UTAMA: HANYA YANG LUNAS
+            ->where('status', '!=', 'cancelled')
             ->orderBy('id', 'asc')
             ->first();
 
@@ -78,9 +81,9 @@ class OrderController extends Controller
             return response()->json([
                 'has_new'   => true, 
                 'latest_id' => $newOrder->id,
-                'type'      => 'info',  // Warna Biru (Info) untuk pesanan masuk
-                'title'     => '🔔 PESANAN BARU!',
-                'message'   => "Pesanan #{$newOrder->id} dari {$newOrder->customer_name} baru saja masuk. Cek detailnya!"
+                'type'      => 'success',  // Warna Hijau (Lunas)
+                'title'     => '💰 PESANAN LUNAS!',
+                'message'   => "Pesanan #{$newOrder->id} dari {$newOrder->customer_name} telah dibayar. Silakan siapkan pesanan!"
             ]);
         }
 
@@ -90,6 +93,7 @@ class OrderController extends Controller
     // --- API: POPUP DETAIL MODAL ---
     public function getOrderDetail($id)
     {
+        // Load relasi orderDetails dan menuItem
         $order = Order::with(['orderDetails.menuItem'])->find($id);
         
         if(!$order) {
