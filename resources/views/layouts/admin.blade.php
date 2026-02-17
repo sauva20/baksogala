@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    
+    {{-- 1. WAJIB: MANIFEST UNTUK NOTIFIKASI BACKGROUND --}}
+    <link rel="manifest" href="/manifest.json">
+    
     <title>@yield('title', 'Admin Dashboard') - Bakso Gala</title>
     
     {{-- CSS Admin --}}
@@ -18,13 +22,13 @@
     @yield('styles')
 
     <style>
-        /* --- CSS DEFAULT (DESKTOP) --- */
+        /* --- CSS STABILIZATION --- */
         .admin-wrapper { display: flex; min-height: 100vh; width: 100%; overflow-x: hidden; }
-        .admin-sidebar { width: 260px; min-width: 260px; flex-shrink: 0; background-color: #2c3e50; color: white; min-height: 100vh; display: flex; flex-direction: column; transition: 0.3s; z-index: 1001; }
-        .sidebar-logo { padding: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .admin-sidebar { width: 260px; min-width: 260px; flex-shrink: 0; background-color: #2c3e50; color: white; min-height: 100vh; display: flex; flex-direction: column; transition: 0.3s; z-index: 1050; }
+        .sidebar-logo { padding: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); position: relative; }
         .sidebar-logo img { max-width: 60px; height: auto; display: block; margin: 0 auto 10px auto; }
         .admin-main-content { flex-grow: 1; width: calc(100% - 260px); background-color: #f4f6f9; display: flex; flex-direction: column; transition: 0.3s; }
-        .admin-header { display: flex; justify-content: space-between; align-items: center; height: 70px; padding: 0 30px; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 25px; flex-shrink: 0; position: relative; z-index: 1000; }
+        .admin-header { display: flex; justify-content: space-between; align-items: center; height: 70px; padding: 0 30px; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 1000; }
         .header-left { display: flex; align-items: center; gap: 15px; }
         .admin-content-inner { flex-grow: 1; padding: 30px; }
         .admin-footer { background-color: #2c3e50; color: #fff; text-align: center; padding: 15px 0; margin-top: auto; }
@@ -35,19 +39,13 @@
         .sidebar-menu .menu-item i { margin-right: 10px; width: 20px; text-align: center; }
         .menu-header { padding: 15px 20px 5px 20px; font-size: 0.75em; color: #7f8c8d; font-weight: bold; letter-spacing: 1px; }
         .logout-btn-sidebar { width: 100%; text-align: left; background: none; border: none; color: #cbd5e0; padding: 12px 20px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 1em; transition: 0.3s; }
-        .logout-btn-sidebar:hover { background-color: rgba(255,255,255,0.1); color: white; }
-
+        
         .notif-wrapper { position: relative; }
         .btn-notif { color: #555; font-size: 1.3rem; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: 0.3s; cursor: pointer; }
-        .btn-notif:hover { background-color: #f0f2f5; }
         .badge-dot { position: absolute; top: 8px; right: 8px; width: 10px; height: 10px; background-color: #e74c3c; border-radius: 50%; border: 2px solid white; animation: pulse-dot 2s infinite; }
         .notif-dropdown { position: absolute; top: 55px; right: -10px; width: 320px; background: white; border-radius: 12px; box-shadow: 0 5px 25px rgba(0,0,0,0.15); overflow: hidden; display: none; border: 1px solid #eee; z-index: 1100; }
         .notif-dropdown.show { display: block; }
-        .notif-header { background-color: #2c3e50; color: white; padding: 15px; }
 
-        .user-dropdown { display: flex; align-items: center; gap: 12px; }
-        .user-info-text { display: flex; flex-direction: column; text-align: right; }
-        .user-name-bold { font-weight: 700; color: #333; font-size: 0.9em; }
         .user-avatar-circle { width: 40px; height: 40px; background-color: #2c3e50; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
 
         @keyframes pulse-dot { 0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); } 70% { box-shadow: 0 0 0 5px rgba(231, 76, 60, 0); } 100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); } }
@@ -55,9 +53,9 @@
         @media (max-width: 992px) {
             .admin-sidebar { width: 100% !important; min-height: auto; position: relative; }
             .sidebar-menu { display: none; }
-            .sidebar-menu.active { display: block; position: absolute; top: 100%; left: 0; width: 100%; background: #2c3e50; }
+            .sidebar-menu.active { display: block; position: absolute; top: 100%; left: 0; width: 100%; background: #2c3e50; box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
             .admin-main-content { width: 100% !important; }
-            .admin-header { padding: 10px 20px; }
+            #mobileSidebarToggle { display: block !important; position: absolute; right: 20px; top: 20px; background: none; border: none; color: white; font-size: 1.5rem; }
         }
     </style>
 </head>
@@ -114,16 +112,16 @@
                         <span class="badge-dot" style="display: none;" id="navBadge"></span>
                     </div>
                     <div class="notif-dropdown" id="notifDropdown">
-                        <div class="notif-header"><h5>Pesanan Masuk</h5></div>
-                        <div class="notif-body"><div class="notif-empty"><i class="fas fa-bell-slash"></i><p>Tidak ada notifikasi baru.</p></div></div>
-                        <div class="notif-footer"><a href="{{ route('admin.orders.index') }}">Lihat Semua Pesanan</a></div>
+                        <div class="notif-header" style="background: #2c3e50; color: white; padding: 10px 15px;"><h5>Pesanan Masuk</h5></div>
+                        <div class="notif-body"><div class="notif-empty" style="padding: 20px; text-align: center;"><p>Tidak ada notifikasi baru.</p></div></div>
+                        <div class="notif-footer" style="padding: 10px; text-align: center; border-top: 1px solid #eee;"><a href="{{ route('admin.orders.index') }}">Lihat Semua</a></div>
                     </div>
                 </div>
 
-                <div class="user-dropdown">
-                    <div class="user-info-text">
-                        <span class="user-name-bold">{{ Auth::user()->name }}</span>
-                        <span class="user-role-badge">{{ ucfirst(Auth::user()->role) }}</span>
+                <div class="user-dropdown" style="display:flex; align-items:center; gap:10px;">
+                    <div class="user-info-text" style="text-align: right;">
+                        <span class="user-name-bold" style="display: block;">{{ Auth::user()->name }}</span>
+                        <small class="text-muted">{{ ucfirst(Auth::user()->role) }}</small>
                     </div>
                     <div class="user-avatar-circle">{{ substr(Auth::user()->name, 0, 1) }}</div>
                 </div>
@@ -136,16 +134,17 @@
     </div>
 </div>
 
+{{-- AUDIO ALARM --}}
 <audio id="alarmSound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto" loop></audio>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    // --- 1. GLOBALS & SYNC ---
+    // --- 1. GLOBALS & ID SYNC ---
     let lastGlobalId = {{ \DB::table('orders')->max('id') ?? 0 }};
     let isAlertOpen = false; 
     const alarmAudio = document.getElementById('alarmSound');
 
-    // --- 2. AUDIO UNLOCK ---
+    // --- 2. AUDIO UNLOCK (WAJIB KLIK LAYAR SEKALI) ---
     document.body.addEventListener('click', function() {
         if(alarmAudio.paused) {
             alarmAudio.muted = true;
@@ -153,21 +152,26 @@
         }
     }, { once: true });
 
-    // --- 3. SIDEBAR TOGGLE ---
-    document.getElementById('sidebarToggle').addEventListener('click', function() {
-        const sidebar = document.getElementById('adminSidebar');
-        const main = document.querySelector('.admin-main-content');
-        if(window.innerWidth > 992) {
+    // --- 3. SIDEBAR LOGIC ---
+    const mobileToggle = document.getElementById('mobileSidebarToggle');
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    
+    function toggleSide() {
+        if(window.innerWidth <= 992) {
+            document.getElementById('sidebarMenu').classList.toggle('active');
+        } else {
+            const sidebar = document.getElementById('adminSidebar');
+            const main = document.querySelector('.admin-main-content');
             sidebar.style.display = sidebar.style.display === 'none' ? 'flex' : 'none';
             main.style.width = sidebar.style.display === 'none' ? '100%' : 'calc(100% - 260px)';
-        } else {
-            document.getElementById('sidebarMenu').classList.toggle('active');
         }
-    });
+    }
+    if(mobileToggle) mobileToggle.addEventListener('click', toggleSide);
+    if(sidebarToggle) sidebarToggle.addEventListener('click', toggleSide);
 
     function toggleNotifDropdown() { document.getElementById('notifDropdown').classList.toggle('show'); }
 
-    // --- 4. POLLING SCRIPT (BACKUP) ---
+    // --- 4. POLLING (BACKUP JIKA FIREBASE DELAY) ---
     function checkGlobalOrders() {
         if(isAlertOpen) return;
         fetch('{{ route("admin.orders.checkNew") }}?last_id=' + lastGlobalId)
@@ -179,17 +183,23 @@
             }).catch(e => {});
     }
 
-    // --- 5. ALERT TRIGGER (SHARED) ---
+    // --- 5. SHARED ALERT FUNCTION (FOR BOTH FIREBASE & POLLING) ---
     function triggerOrderAlert(id, title, message, type) {
-        if(isAlertOpen) return;
-        lastGlobalId = id; // SINKRONKAN ID
+        if(isAlertOpen || id <= lastGlobalId) return; 
+        
+        lastGlobalId = id; // Update agar polling tidak mengulang
         isAlertOpen = true;
-        alarmAudio.play().catch(e => {});
+        
+        if(alarmAudio) {
+            alarmAudio.currentTime = 0;
+            alarmAudio.play().catch(e => console.log("Audio block:", e));
+        }
+        
         document.getElementById('navBadge').style.display = 'block';
 
         Swal.fire({
-            title: title,
-            text: message,
+            title: title || '🔔 PESANAN BARU!',
+            text: message || 'Ada pesanan masuk, cek sekarang!',
             icon: type || 'info',
             showCancelButton: true,
             confirmButtonText: '🔊 MATIKAN ALARM & LIHAT',
@@ -197,17 +207,23 @@
             allowOutsideClick: false,
             backdrop: `rgba(0,0,0,0.8)`
         }).then((res) => {
-            alarmAudio.pause();
-            alarmAudio.currentTime = 0;
+            if(alarmAudio) { alarmAudio.pause(); alarmAudio.currentTime = 0; }
             isAlertOpen = false;
             if(res.isConfirmed) window.location.href = "{{ route('admin.orders.index') }}";
         });
     }
 
     setInterval(checkGlobalOrders, 5000);
+
+    // --- 6. SERVICE WORKER REGISTRATION (SANGAT PENTING) ---
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/firebase-messaging-sw.js')
+        .then((reg) => console.log('SW Registered:', reg.scope))
+        .catch((err) => console.log('SW Error:', err));
+    }
 </script>
 
-{{-- FIREBASE MODULE --}}
+{{-- FIREBASE MODULE (SDK 12.9.0) --}}
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
     import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-messaging.js";
@@ -224,14 +240,17 @@
     const app = initializeApp(firebaseConfig);
     const messaging = getMessaging(app);
 
-    // Request Permission & Save Token
+    // Save Token to DB
     Notification.requestPermission().then((permission) => {
         if (permission === 'granted') {
             getToken(messaging, { vapidKey: 'BKKkRu1AiCDLOEndKleGE3P0yQunprYaUppLGulYJJmbiy3NupZ6RrMxI4fX8HfLnb-Opy7hcH-ObnXi0YDCT9c' }).then((token) => {
                 if (token) {
                     fetch("{{ route('update.fcm-token') }}", {
                         method: "POST",
-                        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+                        headers: { 
+                            'Content-Type': 'application/json', 
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content 
+                        },
                         body: JSON.stringify({ token: token })
                     });
                 }
@@ -239,11 +258,10 @@
         }
     });
 
-    // Listen for Real-time Messages
+    // Foreground Listener
     onMessage(messaging, (payload) => {
-        console.log('Firebase incoming:', payload);
-        // Sync ID dari data payload jika dikirim dari server (opsional)
-        const orderId = payload.data ? payload.data.order_id : lastGlobalId + 1;
+        console.log('Firebase Foreground:', payload);
+        const orderId = payload.data ? parseInt(payload.data.order_id) : (lastGlobalId + 1);
         triggerOrderAlert(orderId, payload.notification.title, payload.notification.body, 'success');
     });
 </script>

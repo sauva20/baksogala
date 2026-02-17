@@ -10,7 +10,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Http; // TAMBAHAN: Untuk nembak API Firebase
+use Illuminate\Support\Facades\Http; // Untuk nembak API Firebase
 use Midtrans\Config;
 use Midtrans\Snap;
 use Carbon\Carbon;
@@ -159,9 +159,6 @@ class CheckoutController extends Controller
             $allMenuItems = MenuItem::all()->keyBy('id'); 
             $isTakeAway = $request->dining_option == 'take_away';
             
-            $packagingChargeCategories = ['Bakso', 'Bakmie', 'Wonton']; 
-            $specificChargeMenus = ['Bakpau Telur Asin'];
-
             foreach ($rawCartItems as $cItem) {
                 $uPrice = $cItem->menu_price;
                 if ($cItem->addons) {
@@ -177,7 +174,7 @@ class CheckoutController extends Controller
 
                 if ($isTakeAway) {
                     $isCategoryMatch = false;
-                    foreach ($packagingChargeCategories as $cat) {
+                    foreach (['Bakso', 'Bakmie', 'Wonton'] as $cat) {
                         if (stripos($cItem->category, $cat) !== false) {
                             $isCategoryMatch = true; break;
                         }
@@ -281,7 +278,7 @@ class CheckoutController extends Controller
             session()->forget(['table_number', 'table_area']); 
 
             DB::commit();
-            return redirect()->route('orders.show', $order->id)->with('success', 'Pesanan dibuat! Silakan scan QRIS.');
+            return redirect()->route('orders.show', $order->id)->with('success', 'Pesanan dibuat!');
 
         } catch (\Exception $e) {
             DB::rollback();
@@ -290,11 +287,11 @@ class CheckoutController extends Controller
     }
 
     /**
-     * FUNGSI KIRIM NOTIFIKASI KE ADMIN VIA FIREBASE
+     * FUNGSI KIRIM NOTIFIKASI KE ADMIN VIA FIREBASE (ANTI-ZONK)
      */
     private function sendNotificationToAdmin($order)
     {
-        // Ambil token fcm dari user role owner/admin
+        // Ambil token fcm dari user role owner/admin yang sedang aktif
         $tokens = User::whereIn('role', ['owner', 'admin'])
                       ->whereNotNull('fcm_token')
                       ->pluck('fcm_token')
@@ -308,14 +305,17 @@ class CheckoutController extends Controller
         $payload = [
             "registration_ids" => $tokens,
             "notification" => [
-                "title" => "🔔 ADA PESANAN BARU!",
-                "body" => "Order #{$order->id} dari {$order->customer_name} baru saja masuk. Cek sekarang!",
+                "title" => "🔔 PESANAN BARU MASUK!",
+                "body" => "Order #{$order->id} dari {$order->customer_name}. Segera cek dapur!",
                 "icon" => asset('assets/images/GALA.png'),
-                "sound" => "default"
+                "sound" => "default",
+                "click_action" => url('/admin/orders') // Biar pas diklik langsung buka page ini
             ],
             "data" => [
                 "order_id" => $order->id
-            ]
+            ],
+            "priority" => "high", // <--- WAJIB: Supaya notif muncul walau browser ditutup/background
+            "content_available" => true
         ];
 
         Http::withHeaders([
