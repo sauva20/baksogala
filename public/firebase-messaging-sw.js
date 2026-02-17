@@ -1,4 +1,3 @@
-// File: public/firebase-messaging-sw.js
 importScripts(
     "https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js",
 );
@@ -6,9 +5,9 @@ importScripts(
     "https://www.gstatic.com/firebasejs/10.9.0/firebase-messaging-compat.js",
 );
 
-// Config yang SAMA PERSIS dengan di Layout Anda
 firebase.initializeApp({
-    apiKey: "AIzaSyDmAom7Db0OkTijt0Hf5UE3YB1kuNvywA",
+    // PERBAIKAN: API Key harus lengkap (AIzaSyDmAom7VDb0...)
+    apiKey: "AIzaSyDmAom7VDb0OkTijt0Hf5UE3YB1kuNvywA",
     authDomain: "pondasikita-465612.firebaseapp.com",
     projectId: "pondasikita-465612",
     storageBucket: "pondasikita-465612.firebasestorage.app",
@@ -19,14 +18,13 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// Ini yang mengatur tampilan notifikasi saat Background
 messaging.onBackgroundMessage(function (payload) {
     console.log("Notifikasi Background Masuk:", payload);
 
     const notificationTitle = payload.notification.title;
     const notificationOptions = {
         body: payload.notification.body,
-        icon: "/assets/images/GALA.png", // Pastikan ada gambar ini di public/assets/images
+        icon: "/assets/images/GALA.png",
     };
 
     return self.registration.showNotification(

@@ -1,8 +1,11 @@
 <?php
 
 use Illuminate\Support\Facades\Route; 
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
-// --- CONTROLLER PENGUNJUNG (FRONTEND) ---
+// --- CONTROLLER PENGUNJUNG ---
 use App\Http\Controllers\HomepageController;
 use App\Http\Controllers\MenuController; 
 use App\Http\Controllers\CartController;
@@ -12,7 +15,7 @@ use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\OrderController; 
 use App\Http\Controllers\HomeController; 
 
-// --- CONTROLLER ADMIN (BACKEND) ---
+// --- CONTROLLER ADMIN ---
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\LoginController;
 use App\Http\Controllers\Admin\PromotionController;
@@ -21,36 +24,85 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\LogController;
 use App\Http\Controllers\Admin\ReviewController; 
 
-// --- ALIAS CONTROLLER ADMIN ---
+// --- ALIAS & MIDDLEWARE ---
 use App\Http\Controllers\Admin\MenuController as AdminMenuController; 
 use App\Http\Controllers\Admin\OrderController as AdminOrderController; 
-
-// --- MIDDLEWARE ---
 use App\Http\Middleware\IsOwner; 
 
 /*
 |--------------------------------------------------------------------------
-| Web Routes
+| Web Routes - Bakso Gala Project (Final Deployment)
 |--------------------------------------------------------------------------
 */
 
 // ====================================================
-// 1. AREA PUBLIK (BISA DIAKSES SIAPA SAJA / TAMU)
+// 1. JALUR PRIORITAS & MAINTENANCE
 // ====================================================
 
-// Halaman Utama & Statis
+/**
+ * JALUR PEMBERSIH CACHE (Buka /clear-all jika masih 404)
+ */
+Route::get('/clear-all', function() {
+    \Artisan::call('route:clear');
+    \Artisan::call('config:clear');
+    \Artisan::call('cache:clear');
+    \Artisan::call('view:clear');
+    return "Semua Cache Hostinger Berhasil Dihapus! Silakan coba /tes-notif";
+});
+
+/**
+ * JALUR TES NOTIFIKASI
+ */
+Route::get('/tes-notif', function () {
+    try {
+        // Menggunakan anonymous class karena Controller asli adalah abstract
+        $controller = new class extends \App\Http\Controllers\Controller {};
+        $hasil = $controller->sendNotifToAdmin("🔔 BAKSO GALA", "Tes Live dari Hostinger Berhasil!");
+        return "Status Kirim: " . $hasil;
+    } catch (\Exception $e) {
+        return "Error: " . $e->getMessage();
+    }
+});
+
+/**
+ * JALUR DARURAT SIMPAN TOKEN (Anti Error 500)
+ */
+Route::post('/update-fcm-token', function (Request $request) {
+    try {
+        $userId = Auth::id();
+        if (!$userId) {
+            return response()->json(['success' => false, 'message' => 'Sesi habis'], 401);
+        }
+        
+        if (!$request->token) {
+            return response()->json(['success' => false, 'message' => 'Token kosong'], 400);
+        }
+
+        // Simpan langsung ke tabel users tanpa lewat Model (Bypass Fillable)
+        DB::table('users')
+            ->where('id', $userId)
+            ->update([
+                'fcm_token' => $request->token,
+                'updated_at' => now()
+            ]);
+            
+        return response()->json(['success' => true, 'message' => 'Token Saved!']);
+    } catch (\Throwable $e) {
+        return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+    }
+})->name('update.fcm-token');
+
+
+// ====================================================
+// 2. AREA PUBLIK (Tamu)
+// ====================================================
+
 Route::get('/', [HomepageController::class, 'index'])->name('home');
 Route::get('/tentang-kami', [PageController::class, 'about'])->name('about');
-
-// --- ROUTE SCAN QR CODE ---
 Route::get('/scan/{area}/{table}', [HomepageController::class, 'scanQr'])->name('scan.qr');
-
-// Halaman Menu
 Route::get('/menu', [MenuController::class, 'index'])->name('menu.index');
 
-// -----------------------------------------------------------
-// KERANJANG BELANJA (CART)
-// -----------------------------------------------------------
+// Keranjang Belanja
 Route::get('/keranjang', [CartController::class, 'index'])->name('cart.index');
 Route::post('/cart/add', [CartController::class, 'addToCart'])->name('cart.add'); 
 Route::post('/cart/update', [CartController::class, 'update'])->name('cart.update');
@@ -58,31 +110,19 @@ Route::post('/cart/remove', [CartController::class, 'remove'])->name('cart.remov
 Route::post('/cart/update-note', [CartController::class, 'updateNote'])->name('cart.updateNote');
 Route::post('/cart/save-info', [CartController::class, 'saveInfo'])->name('cart.saveInfo');
 
-// -----------------------------------------------------------
-// CHECKOUT & TRANSAKSI
-// -----------------------------------------------------------
+// Checkout & Transaksi
 Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
 Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
-
-// Halaman Pembayaran & Detail
 Route::get('/pesanan/{id}', [OrderController::class, 'show'])->name('orders.show');
 Route::get('/pesanan/{id}/detail', [OrderController::class, 'detail'])->name('orders.detail');
-
-// --- CETAK STRUK ---
 Route::get('/pesanan/{id}/cetak', [OrderController::class, 'cetakStruk'])->name('orders.cetak');
-
-// --- API KECIL UNTUK CEK STATUS ---
 Route::get('/pesanan/{id}/status', [OrderController::class, 'checkStatus'])->name('orders.status');
 
-// -----------------------------------------------------------
-// FITUR REVIEW & AI
-// -----------------------------------------------------------
+// Review
 Route::post('/pesanan/{id}/review', [OrderController::class, 'storeReview'])->name('orders.review.store');
 Route::post('/review/polish', [OrderController::class, 'polishReview'])->name('review.polish');
 
-// -----------------------------------------------------------
-// OTENTIKASI (Login/Register/Logout User Biasa)
-// -----------------------------------------------------------
+// Autentikasi
 Route::get('/auth', [AuthController::class, 'index'])->name('login'); 
 Route::post('/login', [AuthController::class, 'login'])->name('login.process');
 Route::post('/register', [AuthController::class, 'register'])->name('register.process');
@@ -90,91 +130,44 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 
 // ====================================================
-// 2. AREA MEMBER (WAJIB LOGIN)
-// ====================================================
-Route::middleware(['auth'])->group(function () {
-    // Route member bisa ditambahkan di sini
-    
-    // [PERBAIKAN POSISI] Disimpan di sini agar Kasir & Owner bisa akses
-    Route::post('/update-fcm-token', [HomeController::class, 'updateToken'])->name('update.fcm-token');
-});
-
-
-// ====================================================
-// 3. AREA ADMIN (PANEL KELOLA)
+// 3. AREA ADMIN (Panel Kelola)
 // ====================================================
 
-// Login Khusus Admin
+// Login Admin
 Route::get('/admin/login', [LoginController::class, 'showLoginForm'])->name('admin.login');
 Route::post('/admin/login', [LoginController::class, 'login'])->name('admin.login.submit');
 
-// Group Route Admin (PROTECTED / WAJIB LOGIN)
+// Group Admin (Protected)
 Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () {
     
-    // Logout Admin
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-    // -------------------------------------------------------
-    // A. AKSES BERSAMA (OWNER & KASIR)
-    // -------------------------------------------------------
-    // Kasir HANYA bisa akses Pesanan, Menu, & Review
-    
-    // 1. Manajemen Pesanan
+    // --- A. AKSES BERSAMA (OWNER & KASIR) ---
     Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
     Route::patch('/orders/{id}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.updateStatus');
     Route::get('/orders/check-new', [AdminOrderController::class, 'checkNewOrders'])->name('orders.checkNew');
     Route::get('/orders/{id}/detail', [AdminOrderController::class, 'getOrderDetail'])->name('orders.detail');
-
-    // 2. Manajemen Menu
+    
     Route::resource('menu', AdminMenuController::class)->except(['create', 'show', 'edit']);
-
-    // 3. Manajemen Review (Monitoring Homepage)
+    
     Route::get('/reviews', [ReviewController::class, 'index'])->name('reviews.index');
     Route::patch('/reviews/{review}/toggle', [ReviewController::class, 'toggleFeatured'])->name('reviews.toggle');
     Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
 
-
-    // -------------------------------------------------------
-    // B. AKSES KHUSUS OWNER (KASIR DILARANG MASUK)
-    // -------------------------------------------------------
+    // --- B. AKSES KHUSUS OWNER ---
     Route::middleware([IsOwner::class])->group(function () {
-        
-        // Dashboard Statistik
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         
-        // Generate QR Code Area
         Route::get('/generate-qr', function () {
             $areas = ['Lantai 2 Gym', 'Indoor More', 'Depan Utama', 'Area Photobooth'];
             $totalMejaPerArea = 20; 
             return view('admin.print_qr', compact('areas', 'totalMejaPerArea'));
         })->name('qr.generate');
         
-        // Manajemen Promosi
         Route::resource('promotions', PromotionController::class);
-        
-        // Laporan Keuangan & Analisa
         Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
-        
-        // Log Aktivitas Sistem
         Route::get('/logs', [LogController::class, 'index'])->name('logs.index');
-        
-        // Manajemen User (Data Pelanggan & Staff)
         Route::get('/users', [UserController::class, 'index'])->name('users.index');
         Route::get('/users/{id}', [UserController::class, 'show'])->name('users.show');
-        
-        // [PERBAIKAN] Route update-fcm-token SUDAH DIPINDAHKAN KE ATAS (AREA MEMBER)
-        // Agar tidak error permission untuk kasir dan namanya sesuai request.
     });
-
-});
-
-// Route sementara untuk tes HP bunyi atau tidak
-// Route sementara untuk tes HP bunyi atau tidak
-Route::get('/tes-notif', function () {
-    // KITA PAKAI TRIK 'ANONYMOUS CLASS' AGAR BISA AKSES FUNGSI DI DALAM ABSTRACT CLASS
-    $controller = new class extends \App\Http\Controllers\Controller {};
-    
-    $hasil = $controller->sendNotifToAdmin("🔔 TES BUNYI!", "Halo Bos, ini tes notifikasi dari sistem Bakso Gala.");
-    
-    return "Status Kirim: " . $hasil;
 });
