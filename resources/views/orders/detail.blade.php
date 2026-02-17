@@ -167,6 +167,17 @@
                     @for($i=0; $i<$order->review->rating; $i++) ★ @endfor
                 </div>
                 <p style="font-style: italic; color: #666;">"{{ $order->review->comment }}"</p>
+                
+                {{-- PERBAIKAN: MENAMPILKAN GAMBAR (MENCEGAH PATH GANDA) --}}
+                @if($order->review->photo)
+                    <div style="margin-top: 15px;">
+                        {{-- KUNCI PERBAIKAN: Gunakan asset() langsung ke variabel, jangan tambah 'uploads/' lagi --}}
+                        <img src="{{ asset($order->review->photo) }}" 
+                             alt="Review Photo" 
+                             style="max-width: 100%; height: auto; max-height: 200px; border-radius: 10px; border: 1px solid #eee; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                    </div>
+                @endif
+
                 <div style="margin-top: 10px; color: green; font-size: 0.8rem;"><i class="fas fa-check-circle"></i> Ulasan terkirim</div>
             @else
                 {{-- FORM REVIEW --}}
