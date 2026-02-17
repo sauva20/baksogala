@@ -24,6 +24,7 @@ class User extends Authenticatable
         'phone_number', // WAJIB ADA AGAR BISA DISIMPAN
         'password',
         'role', // WAJIB ADA JIKA PAKAI ROLE
+        'fcm_token',
     ];
 
     /**
