@@ -168,10 +168,9 @@
                 </div>
                 <p style="font-style: italic; color: #666;">"{{ $order->review->comment }}"</p>
                 
-                {{-- PERBAIKAN: MENAMPILKAN GAMBAR (MENCEGAH PATH GANDA) --}}
+                {{-- MENAMPILKAN GAMBAR (MENCEGAH PATH GANDA) --}}
                 @if($order->review->photo)
                     <div style="margin-top: 15px;">
-                        {{-- KUNCI PERBAIKAN: Gunakan asset() langsung ke variabel, jangan tambah 'uploads/' lagi --}}
                         <img src="{{ asset($order->review->photo) }}" 
                              alt="Review Photo" 
                              style="max-width: 100%; height: auto; max-height: 200px; border-radius: 10px; border: 1px solid #eee; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
@@ -200,7 +199,7 @@
                         </div>
                     </div>
 
-                    {{-- FITUR AI PERCANTIK KATA DI SINI --}}
+                    {{-- FITUR AI PERCANTIK KATA --}}
                     <div class="ai-wrapper">
                         <textarea id="reviewComment" name="comment" class="form-control" rows="4" placeholder="Tulis ulasan kasar, nanti AI yang perbaiki... (Cth: 'Enak banget baksonya')" required></textarea>
                         
@@ -254,13 +253,11 @@
     const statusSekarang = document.getElementById('currentStatus').value;
     
     if (statusSekarang !== 'completed' && statusSekarang !== 'cancelled') {
-        console.log("Monitoring status pesanan...");
         setInterval(() => {
             fetch("{{ route('orders.status', $order->id) }}")
                 .then(response => response.json())
                 .then(data => {
                     if (data.status !== statusSekarang) {
-                        console.log("Status berubah! Reloading...");
                         location.reload(); 
                     }
                 })
