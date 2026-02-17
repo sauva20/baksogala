@@ -43,7 +43,7 @@
                     <div class="timeline-icon"><i class="fas fa-store-alt"></i></div>
                     <div class="timeline-content">
                         <h4>2025 - Perkembangan</h4>
-                        <p>Untuk menjangkau lebih banyak penikmat bakso, merubah dan mengpgrade inovasi kami menjadi bakso khas yaitu bakso cap gala, menawarkan suasana kafe yang lebih nyaman dan modern.</p>
+                        <p>Untuk menjangkau lebih banyak penikmat bakso, merubah inovasi kami menjadi bakso khas yaitu bakso cap gala, menawarkan suasana kafe yang lebih nyaman dan modern.</p>
                     </div>
                 </div>
             </div>
