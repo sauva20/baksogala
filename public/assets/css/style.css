@@ -1,7 +1,7 @@
 /* --- Global Styles --- */
 /* --- Frontend Styles --- */
 /* Import global styles */
-@import url('global.css');
+@import url("global.css");
 
 /* Update variables to use the new global ones */
 body {
@@ -9,7 +9,9 @@ body {
     background-color: var(--background-light-front);
 }
 
-h1, h2, h3 {
+h1,
+h2,
+h3 {
     color: var(--secondary-color-front);
 }
 
@@ -40,7 +42,9 @@ a {
 
 /* --- Hero Section --- */
 .hero-section {
-    background: linear-gradient(rgba(47,61,101,0.6), rgba(47,61,101,0.6)), url('../images/BANNER.png') no-repeat center center/cover;
+    background:
+        linear-gradient(rgba(47, 61, 101, 0.6), rgba(47, 61, 101, 0.6)),
+        url("../images/BANNER.png") no-repeat center center/cover;
     color: var(--text-light);
     text-align: center;
     padding: 120px 20px;
@@ -53,10 +57,10 @@ a {
 }
 
 /* ... (Kode CSS frontend lainnya) ... */
-@import url('https://fonts.cdnfonts.com/css/bolton-sans');
+@import url("https://fonts.cdnfonts.com/css/bolton-sans");
 :root {
-    --primary-color: #B1935B; /* Merah Bakso */
-    --secondary-color: #2F3D65; /* Kuning Cerah */
+    --primary-color: #b1935b; /* Merah Bakso */
+    --secondary-color: #2f3d65; /* Kuning Cerah */
     --text-dark: #fffff;
     --text-light: #fff;
     --bg-light: #f9f9f9;
@@ -65,7 +69,7 @@ a {
 }
 
 body {
-    font-family: 'Bolton Sans', sans-serif;
+    font-family: "Bolton Sans", sans-serif;
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -73,7 +77,9 @@ body {
     color: var(--text-dark);
 }
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
     box-sizing: inherit;
 }
 
@@ -83,7 +89,9 @@ body {
     padding: 0 20px;
 }
 
-h1, h2, h3 {
+h1,
+h2,
+h3 {
     color: var(--text-dark);
     font-weight: 700;
     margin-bottom: 20px;
@@ -122,7 +130,9 @@ a:hover {
     border-radius: 8px;
     font-weight: 600;
     text-align: center;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    transition:
+        background-color 0.3s ease,
+        color 0.3s ease;
 }
 
 .btn-primary {
@@ -131,24 +141,24 @@ a:hover {
 }
 
 .btn-primary:hover {
-    background-color: #B1935B; /* Darker red */
+    background-color: #b1935b; /* Darker red */
     text-decoration: none;
 }
 
 .btn-secondary {
     background-color: var(--secondary-color);
-    color: #FAF9F2 !important;
+    color: #faf9f2 !important;
     border: 1px solid var(--secondary-color);
 }
 
 .btn-secondary:hover {
-    background-color: #B1935B; /* Darker yellow */
+    background-color: #b1935b; /* Darker yellow */
     text-decoration: none;
 }
 
 /* --- Hero Section --- */
 .hero-section {
-    background: url('../images/BANNER.png') no-repeat center center/cover;
+    background: url("../images/BANNER.png") no-repeat center center/cover;
     color: var(--text-light);
     text-align: center;
     padding: 120px 20px;
@@ -160,15 +170,21 @@ a:hover {
     position: relative;
 }
 
-.hero-section::before { /* Bayangan transparan untuk teks lebih jelas */
-    content: '';
+.hero-section::before {
+    /* Bayangan transparan untuk teks lebih jelas */
+    content: "";
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
     /* Efek linear gradient baru untuk bayangan transparan */
-    background-image: linear-gradient(to top, rgba( 47,61,101, 0.7) 0%, rgba( 47,61,101, 0.2) 200%, rgba( 47,61,101, 0) 200%);
+    background-image: linear-gradient(
+        to top,
+        rgba(47, 61, 101, 0.7) 0%,
+        rgba(47, 61, 101, 0.2) 200%,
+        rgba(47, 61, 101, 0) 200%
+    );
     z-index: 1;
 }
 
@@ -180,14 +196,14 @@ a:hover {
 .hero-section h1 {
     font-size: 3.8em;
     margin-bottom: 20px;
-    text-shadow: 2px 2px 5px rgba(0,0,0,0.7);
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7);
     color: var(--text-light);
 }
 
 .hero-section p {
     font-size: 1.3em;
     margin-bottom: 40px;
-    text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
     color: var(--text-light);
 }
 
@@ -198,13 +214,13 @@ a:hover {
     font-size: 1.2em;
     font-weight: bold;
     border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .btn-hero:hover {
     background-color: B1935B;
     transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
     text-decoration: none;
 }
 
@@ -270,7 +286,10 @@ a:hover {
 
 .menu-items-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Responsif grid */
+    grid-template-columns: repeat(
+        auto-fit,
+        minmax(280px, 1fr)
+    ); /* Responsif grid */
     gap: 30px;
     margin-top: 50px;
     margin-bottom: 50px;
@@ -357,7 +376,9 @@ a:hover {
 
 /* --- CTA Final Section --- */
 .cta-final-section {
-    background: linear-gradient(rgba(47,61,101,0.6), rgba(47,61,101,0.6)), url('../images/MENU.png') no-repeat center center/cover;
+    background:
+        linear-gradient(rgba(47, 61, 101, 0.6), rgba(47, 61, 101, 0.6)),
+        url("../images/MENU.png") no-repeat center center/cover;
     color: var(--text-light);
     text-align: center;
     padding: 100px 20px;
@@ -367,14 +388,14 @@ a:hover {
     color: var(--text-light);
     font-size: 3em;
     margin-bottom: 25px;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
 }
 
 .cta-final-section p {
     font-size: 1.2em;
     margin-bottom: 40px;
     color: var(--text-light);
-    text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .btn-cta-final {
@@ -384,32 +405,31 @@ a:hover {
     font-size: 1.3em;
     font-weight: bold;
     border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     margin-bottom: 30px;
 }
 
 .btn-cta-final:hover {
     background-color: B1935B;
     transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
     text-decoration: none;
 }
 
 .contact-info-footer {
     font-size: 1em;
     margin: 5px 0;
-    color: rgba(255,255,255,0.8);
+    color: rgba(255, 255, 255, 0.8);
 }
 
 .contact-info-footer a {
-    color: rgba(255,255,255,0.8);
+    color: rgba(255, 255, 255, 0.8);
     text-decoration: underline;
 }
 
 .contact-info-footer a:hover {
     color: var(--secondary-color);
 }
-
 
 /* --- Footer --- */
 footer {
@@ -427,14 +447,15 @@ footer {
 }
 
 .footer-col h3 {
-    color: #B1935B;
+    color: #b1935b;
     margin-bottom: 20px;
     font-size: 1.3em;
 }
 
-.footer-col p, .footer-col ul {
+.footer-col p,
+.footer-col ul {
     margin-bottom: 10px;
-    color: #FAF9F2;
+    color: #faf9f2;
 }
 
 .footer-col ul {
@@ -447,7 +468,7 @@ footer {
 }
 
 .footer-col ul li a {
-    color: #FAF9F2;
+    color: #faf9f2;
     text-decoration: none;
     transition: color 0.3s ease;
 }
@@ -484,11 +505,11 @@ footer {
 /* =========================================
    1. GLOBAL VARIABLES & RESET
    ========================================= */
-@import url('https://fonts.cdnfonts.com/css/bolton-sans');
+@import url("https://fonts.cdnfonts.com/css/bolton-sans");
 
 :root {
-    --primary-color: #B1935B; /* Emas/Coklat Mewah */
-    --secondary-color: #2F3D65; /* Navy Blue Premium */
+    --primary-color: #b1935b; /* Emas/Coklat Mewah */
+    --secondary-color: #2f3d65; /* Navy Blue Premium */
     --text-dark: #333333;
     --text-light: #ffffff;
     --bg-light: #f8f9fa;
@@ -498,7 +519,7 @@ footer {
 }
 
 body {
-    font-family: 'Bolton Sans', sans-serif;
+    font-family: "Bolton Sans", sans-serif;
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -508,7 +529,9 @@ body {
     overflow-x: hidden; /* Mencegah scroll horizontal halaman */
 }
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
     box-sizing: inherit;
 }
 
@@ -519,15 +542,23 @@ body {
 }
 
 /* Typography Global */
-h1, h2, h3 {
+h1,
+h2,
+h3 {
     color: var(--secondary-color);
     font-weight: 700;
     margin-bottom: 15px;
     line-height: 1.2;
 }
 
-a { text-decoration: none; transition: 0.3s; }
-ul { list-style: none; padding: 0; }
+a {
+    text-decoration: none;
+    transition: 0.3s;
+}
+ul {
+    list-style: none;
+    padding: 0;
+}
 
 /* =========================================
    2. BUTTONS (PILL SHAPE MODERN)
@@ -568,8 +599,13 @@ ul { list-style: none; padding: 0; }
    3. HERO SECTION (CINEMATIC)
    ========================================= */
 .hero-section {
-    background: linear-gradient(to top, rgba(47,61,101,0.9) 0%, rgba(47,61,101,0.4) 100%), 
-                url('../images/BANNER.png') no-repeat center center/cover;
+    background:
+        linear-gradient(
+            to top,
+            rgba(47, 61, 101, 0.9) 0%,
+            rgba(47, 61, 101, 0.4) 100%
+        ),
+        url("../images/BANNER.png") no-repeat center center/cover;
     color: var(--text-light);
     text-align: center;
     padding: 160px 20px 80px;
@@ -583,13 +619,13 @@ ul { list-style: none; padding: 0; }
 .hero-section h1 {
     font-size: 3.5em;
     color: #fff;
-    text-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    text-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
     margin-bottom: 20px;
 }
 
 .hero-section p {
     font-size: 1.25em;
-    color: rgba(255,255,255,0.9);
+    color: rgba(255, 255, 255, 0.9);
     margin-bottom: 40px;
     max-width: 1125px;
 }
@@ -600,13 +636,15 @@ ul { list-style: none; padding: 0; }
     padding: 16px 45px;
     font-size: 1.1em;
     border-radius: 50px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 }
 
 /* =========================================
    4. SECTIONS (ABOUT, MENU, ETC)
    ========================================= */
-section { padding: 80px 0; }
+section {
+    padding: 80px 0;
+}
 
 .section-title {
     text-align: center;
@@ -618,7 +656,9 @@ section { padding: 80px 0; }
 }
 
 /* About Us Grid */
-.about-us-section { background-color: #fff; }
+.about-us-section {
+    background-color: #fff;
+}
 .features-grid {
     display: flex;
     justify-content: center;
@@ -657,7 +697,9 @@ section { padding: 80px 0; }
     transition: transform 0.3s;
 }
 
-.menu-item:hover { transform: translateY(-5px); }
+.menu-item:hover {
+    transform: translateY(-5px);
+}
 
 .menu-item img {
     width: 100%;
@@ -665,8 +707,15 @@ section { padding: 80px 0; }
     object-fit: cover;
 }
 
-.menu-item h3 { margin: 20px 20px 5px; font-size: 1.4em; }
-.menu-item p { margin: 0 20px 15px; color: #666; font-size: 0.95em; }
+.menu-item h3 {
+    margin: 20px 20px 5px;
+    font-size: 1.4em;
+}
+.menu-item p {
+    margin: 0 20px 15px;
+    color: #666;
+    font-size: 0.95em;
+}
 .menu-item .price {
     display: inline-block;
     margin: 0 20px 20px;
@@ -676,7 +725,9 @@ section { padding: 80px 0; }
 }
 
 /* Testimonials */
-.testimonials-section { background-color: var(--bg-light); }
+.testimonials-section {
+    background-color: var(--bg-light);
+}
 .testimonials-slider {
     display: flex;
     justify-content: center;
@@ -695,33 +746,66 @@ section { padding: 80px 0; }
 
 /* CTA & Footer */
 .cta-final-section {
-    background: linear-gradient(rgba(47,61,101,0.8), rgba(47,61,101,0.8)), url('../images/MENU.png') center/cover;
+    background:
+        linear-gradient(rgba(47, 61, 101, 0.8), rgba(47, 61, 101, 0.8)),
+        url("../images/MENU.png") center/cover;
     color: #fff;
     text-align: center;
 }
 
-.cta-final-section h2 { color: #fff; }
-.cta-final-section p { color: rgba(255,255,255,0.9); }
+.cta-final-section h2 {
+    color: #fff;
+}
+.cta-final-section p {
+    color: rgba(255, 255, 255, 0.9);
+}
 
-footer { background: var(--bg-dark); color: #ccc; padding: 60px 0 20px; }
-.footer-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 40px; }
-.footer-col h3 { color: #fff; font-size: 1.2em; margin-bottom: 20px; }
-.footer-col a { color: #ccc; }
-.footer-col a:hover { color: var(--primary-color); }
-.social-links a { margin-right: 15px; font-size: 1.5em; }
-.copyright { text-align: center; margin-top: 50px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
-
+footer {
+    background: var(--bg-dark);
+    color: #ccc;
+    padding: 60px 0 20px;
+}
+.footer-cols {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 40px;
+}
+.footer-col h3 {
+    color: #fff;
+    font-size: 1.2em;
+    margin-bottom: 20px;
+}
+.footer-col a {
+    color: #ccc;
+}
+.footer-col a:hover {
+    color: var(--primary-color);
+}
+.social-links a {
+    margin-right: 15px;
+    font-size: 1.5em;
+}
+.copyright {
+    text-align: center;
+    margin-top: 50px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
 
 /* ===============================================================
    🔥🔥🔥 MOBILE & RESPONSIVE MAGIC STARTS HERE 🔥🔥🔥
    =============================================================== */
 
 @media (max-width: 768px) {
-    
     /* 1. Global Layout Mobile */
-    .container { padding: 0 20px; overflow: visible; }
-    section { padding: 50px 0; }
-    
+    .container {
+        padding: 0 20px;
+        overflow: visible;
+    }
+    section {
+        padding: 50px 0;
+    }
+
     h2 {
         font-size: 1.8rem;
         text-align: left; /* Judul rata kiri agar modern */
@@ -729,22 +813,24 @@ footer { background: var(--bg-dark); color: #ccc; padding: 60px 0 20px; }
         padding-left: 15px;
         border-left: 5px solid var(--primary-color);
     }
-    
-    p { font-size: 1rem; }
+
+    p {
+        font-size: 1rem;
+    }
 
     /* 2. Hero Section Mobile */
-/* 2. Hero Section Mobile (SUDAH DIPERBAIKI: RATA TENGAH) */
+    /* 2. Hero Section Mobile (SUDAH DIPERBAIKI: RATA TENGAH) */
     .hero-section {
         min-height: 80vh; /* Tinggi layar hampir penuh */
         padding: 120px 20px 60px; /* Padding atas besar biar ga ketabrak navbar */
-        
+
         /* Flexbox untuk Center */
         display: flex;
         flex-direction: column;
         justify-content: center; /* Tengah secara vertikal */
-        align-items: center;     /* Tengah secara horizontal */
-        text-align: center;      /* Teks rata tengah */
-        
+        align-items: center; /* Tengah secara horizontal */
+        text-align: center; /* Teks rata tengah */
+
         background-position: center center; /* Fokus gambar di tengah */
     }
 
@@ -755,16 +841,16 @@ footer { background: var(--bg-dark); color: #ccc; padding: 60px 0 20px; }
         width: 100%; /* Memastikan lebar penuh */
     }
 
-.hero-section p { 
+    .hero-section p {
         font-size: 1.1rem;
         margin-bottom: 30px;
         max-width: 90%; /* Supaya teks tidak terlalu mepet pinggir */
         margin-left: auto;
         margin-right: auto;
-        color: rgba(255,255,255,0.95);
+        color: rgba(255, 255, 255, 0.95);
     }
-    
-    .btn-hero { 
+
+    .btn-hero {
         width: auto; /* Tombol menyesuaikan teks, jangan full width */
         min-width: 200px; /* Tapi minimal segini biar enak ditekan */
         text-align: center;
@@ -783,14 +869,16 @@ footer { background: var(--bg-dark); color: #ccc; padding: 60px 0 20px; }
         gap: 20px;
         padding-bottom: 30px; /* Ruang untuk shadow */
         padding-right: 20px; /* Padding kanan agar item terakhir tidak kepotong */
-        
+
         /* Efek Magnet */
-        scroll-snap-type: x mandatory; 
+        scroll-snap-type: x mandatory;
         -webkit-overflow-scrolling: touch;
     }
-    
+
     /* Sembunyikan scrollbar */
-    .menu-items-grid::-webkit-scrollbar { display: none; }
+    .menu-items-grid::-webkit-scrollbar {
+        display: none;
+    }
 
     .menu-item {
         min-width: 280px; /* Lebar tetap kartu */
@@ -798,49 +886,62 @@ footer { background: var(--bg-dark); color: #ccc; padding: 60px 0 20px; }
         scroll-snap-align: center; /* Magnet di tengah saat stop */
         margin: 0;
         border-radius: 16px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
     }
 
-    .menu-item img { height: 180px; }
+    .menu-item img {
+        height: 180px;
+    }
 
-    /* 4. TESTIMONIALS (AUTO LOOP ANIMATION) */
+    /* 4. TESTIMONIALS (MANUAL SCROLL FIX) */
     .testimonials-section {
         padding: 40px 0;
-        overflow: hidden; /* Sembunyikan luapan animasi */
+        /* Hapus overflow: hidden, ganti jadi visible atau default */
     }
 
-    /* Container Animasi */
+    /* Container Slider */
     .testimonials-slider {
         display: flex;
         flex-wrap: nowrap;
         gap: 20px;
-        
-        /* Animasi Marquee */
-        animation: scrollLoop 25s linear infinite; 
-        width: max-content; /* Lebar menyesuaikan isi konten */
+
+        /* --- FITUR SCROLL MANUAL --- */
+        overflow-x: auto; /* Izinkan scroll samping */
+        scroll-snap-type: x mandatory; /* Efek magnet */
+        -webkit-overflow-scrolling: touch; /* Agar licin di iPhone */
+
+        padding-bottom: 30px; /* Ruang untuk shadow kartu */
+        padding-right: 20px; /* Jarak aman di kanan */
+
+        /* --- HAPUS BAGIAN INI (INI PENYEBAB MASALAHNYA) --- */
+        /* animation: scrollLoop 25s linear infinite; */
+        /* width: max-content; */
     }
 
-    /* Pause saat disentuh user */
-    .testimonials-slider:hover, 
-    .testimonials-slider:active {
-        animation-play-state: paused;
+    /* Sembunyikan Scrollbar tapi tetap bisa discroll */
+    .testimonials-slider::-webkit-scrollbar {
+        display: none;
     }
 
     .testimonial-card {
         min-width: 300px;
         max-width: 300px;
-        flex-shrink: 0; /* Jangan mengecil */
+        flex-shrink: 0;
         background: #fff;
         border: 1px solid #eee;
         text-align: left;
         padding: 25px;
+
+        /* Agar kartu pas berhenti di tengah layar */
+        scroll-snap-align: center;
     }
 
-    @keyframes scrollLoop {
+    /* --- HAPUS KEYFRAMES INI JUGA BIAR BERSIH --- */
+    /* @keyframes scrollLoop {
         0% { transform: translateX(0); }
         100% { transform: translateX(-50%); } 
-        /* Pastikan konten di HTML cukup panjang atau diduplikasi agar loop mulus */
-    }
+    } 
+    */
 
     /* 5. Footer Mobile */
     .footer-cols {
@@ -854,9 +955,9 @@ footer { background: var(--bg-dark); color: #ccc; padding: 60px 0 20px; }
         gap: 15px;
         justify-content: flex-start;
     }
-    
+
     .social-links a {
-        background: rgba(255,255,255,0.1);
+        background: rgba(255, 255, 255, 0.1);
         width: 45px;
         height: 45px;
         display: flex;
