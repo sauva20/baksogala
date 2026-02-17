@@ -10,8 +10,10 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http; // TAMBAHAN: Untuk nembak API Firebase
 use Midtrans\Config;
 use Midtrans\Snap;
+use Carbon\Carbon;
 
 class CheckoutController extends Controller
 {
@@ -56,14 +58,13 @@ class CheckoutController extends Controller
             return redirect()->route('menu.index')->with('error', 'Keranjang kosong.');
         }
 
-        $grandTotal = 0; // Total Murni Makanan (Tanpa Kemasan)
-        $totalPackagingFee = 0; // Potensi Biaya Kemasan (Untuk dikirim ke JS)
+        $grandTotal = 0; 
+        $totalPackagingFee = 0; 
         $cartItems = [];
         $collectedNotes = [];
         
         $allAddons = MenuItem::whereIn('category', ['Tambahan', 'Side Dish', 'Topping'])->get()->keyBy('id');
         
-        // Konfigurasi Kategori yang kena charge
         $packagingChargeCategories = ['Bakso', 'Bakmie', 'Wonton']; 
         $specificChargeMenus = ['Bakpau Telur Asin'];
 
@@ -71,7 +72,6 @@ class CheckoutController extends Controller
             $unitPrice = $item->menu_price;
             $addonNames = [];
 
-            // Hitung Harga Addons
             if ($item->addons) {
                 $addonIds = json_decode($item->addons, true);
                 if (is_array($addonIds)) {
@@ -84,8 +84,6 @@ class CheckoutController extends Controller
                 }
             }
 
-            // --- HITUNG POTENSI BIAYA BUNGKUS ---
-            // Kita hitung totalnya di sini agar JavaScript bisa mengambil nilainya
             $isCategoryMatch = false;
             foreach ($packagingChargeCategories as $cat) {
                 if (stripos($item->category, $cat) !== false) {
@@ -100,11 +98,9 @@ class CheckoutController extends Controller
             }
 
             if ($isCategoryMatch || $isMenuMatch) {
-                // Tambahkan ke total potensi biaya (2000 * qty)
                 $totalPackagingFee += (2000 * $item->quantity);
             }
 
-            // Hitung Subtotal (Hanya Makanan)
             $subtotal = $unitPrice * $item->quantity;
             $grandTotal += $subtotal;
 
@@ -125,22 +121,17 @@ class CheckoutController extends Controller
         }
 
         $compiledNotes = implode(", ", $collectedNotes);
-        
-        // Ambil Data Session (Otomatis terisi jika user sudah input di Cart)
         $scannedTable = session('table_number', null);
         $scannedArea  = session('table_area', null);
 
-        // Kirim variable ke View
         return view('checkout.index', compact('cartItems', 'grandTotal', 'totalPackagingFee', 'scannedTable', 'scannedArea', 'compiledNotes'));
     }
 
     // Memproses Pesanan
     public function store(Request $request)
     {
-        // --- VALIDASI DATA ---
         $request->validate([
             'customer_name' => 'required|string|max:255',
-            // Validasi Nomor HP Indonesia
             'customer_phone' => [
                 'required', 
                 'numeric', 
@@ -151,7 +142,6 @@ class CheckoutController extends Controller
             'table_number' => 'required_if:dining_option,dine_in',
             'dining_area' => 'required_if:dining_option,dine_in',
         ], [
-            // Custom Error Messages
             'customer_phone.starts_with' => 'Nomor WhatsApp harus diawali dengan 08.',
             'customer_phone.digits_between' => 'Nomor WhatsApp harus antara 10 s/d 13 digit.',
             'customer_phone.numeric' => 'Nomor WhatsApp harus berupa angka.',
@@ -167,19 +157,13 @@ class CheckoutController extends Controller
 
             $calculatedTotal = 0;
             $allMenuItems = MenuItem::all()->keyBy('id'); 
-            
-            // Cek apakah user memilih Take Away
             $isTakeAway = $request->dining_option == 'take_away';
             
-            // Konfigurasi Kategori Charge
             $packagingChargeCategories = ['Bakso', 'Bakmie', 'Wonton']; 
             $specificChargeMenus = ['Bakpau Telur Asin'];
 
-            // --- HITUNG ULANG TOTAL (Back-end Calculation) ---
             foreach ($rawCartItems as $cItem) {
                 $uPrice = $cItem->menu_price;
-                
-                // Tambah Harga Addons
                 if ($cItem->addons) {
                     $aIds = json_decode($cItem->addons, true);
                     if (is_array($aIds)) {
@@ -191,7 +175,6 @@ class CheckoutController extends Controller
                     }
                 }
 
-                // --- LOGIKA BIAYA BUNGKUS (SAVE TO DB) ---
                 if ($isTakeAway) {
                     $isCategoryMatch = false;
                     foreach ($packagingChargeCategories as $cat) {
@@ -199,27 +182,16 @@ class CheckoutController extends Controller
                             $isCategoryMatch = true; break;
                         }
                     }
-                    $isMenuMatch = false;
-                    foreach ($specificChargeMenus as $menuName) {
-                        if (stripos($cItem->menu_name, $menuName) !== false) {
-                            $isMenuMatch = true; break;
-                        }
-                    }
-
-                    if ($isCategoryMatch || $isMenuMatch) {
-                        $uPrice += 2000; // Harga per item naik 2000 di Database
+                    if ($isCategoryMatch || stripos($cItem->menu_name, 'Bakpau Telur Asin') !== false) {
+                        $uPrice += 2000;
                     }
                 }
-
                 $calculatedTotal += $uPrice * $cItem->quantity;
             }
 
-            // Hitung Biaya Layanan
             $appFee = $calculatedTotal * 0.007; 
             $finalTotal = ceil($calculatedTotal + $appFee);
 
-            // Buat/Update User
-            $user = null;
             if (Auth::check()) {
                 $user = Auth::user();
                 if (empty($user->phone_number)) $user->update(['phone_number' => $request->customer_phone]);
@@ -231,21 +203,12 @@ class CheckoutController extends Controller
                 Auth::login($user);
             }
 
-            // Buat Order Header
             $order = new Order();
             $order->user_id = $user->id;
             $order->customer_name = $request->customer_name;
             $order->customer_phone = $request->customer_phone;
-            
-            if ($request->dining_option == 'dine_in') {
-                $order->order_type = 'Dine In';
-                // Simpan Area & Nomor Meja
-                $order->shipping_address = $request->dining_area . ' - Meja ' . $request->table_number;
-            } else {
-                $order->order_type = 'Take Away';
-                $order->shipping_address = 'Take Away (Bungkus)';
-            }
-
+            $order->order_type = ($request->dining_option == 'dine_in') ? 'Dine In' : 'Take Away';
+            $order->shipping_address = ($request->dining_option == 'dine_in') ? $request->dining_area . ' - Meja ' . $request->table_number : 'Take Away (Bungkus)';
             $order->total_price = $finalTotal;
             $order->status = 'new';
             $order->payment_method = 'midtrans';
@@ -253,66 +216,47 @@ class CheckoutController extends Controller
             $order->order_notes = $request->order_notes;
             $order->save();
 
-            // Simpan Order Detail (Item)
+            // --- TRIGGER NOTIFIKASI KE ADMIN DISINI ---
+            $this->sendNotificationToAdmin($order);
+
             foreach ($rawCartItems as $item) {
                 $detail = new OrderDetail();
                 $detail->order_id = $order->id;
                 $detail->menu_item_id = $item->menu_item_id;
                 $detail->quantity = $item->quantity;
                 
-                $unitPrice = $item->menu_price;
+                $uPrice = $item->menu_price;
                 $addonNamesArray = [];
 
                 if ($item->addons) {
-                    $addonIds = json_decode($item->addons, true);
-                    if (is_array($addonIds)) {
-                        foreach ($addonIds as $addonId) {
-                            if (isset($allMenuItems[$addonId])) {
-                                $unitPrice += $allMenuItems[$addonId]->price; 
-                                $addonNamesArray[] = $allMenuItems[$addonId]->name; 
+                    $aIds = json_decode($item->addons, true);
+                    if (is_array($aIds)) {
+                        foreach ($aIds as $id) {
+                            if (isset($allMenuItems[$id])) {
+                                $uPrice += $allMenuItems[$id]->price; 
+                                $addonNamesArray[] = $allMenuItems[$id]->name; 
                             }
                         }
                     }
                 }
 
-                // --- HITUNG ULANG PRICE UNTUK RECORD DETAIL ---
-                if ($isTakeAway) {
-                    $isCategoryMatch = false;
-                    foreach ($packagingChargeCategories as $cat) {
-                        if (stripos($item->category, $cat) !== false) {
-                            $isCategoryMatch = true; break;
-                        }
-                    }
-                    $isMenuMatch = false;
-                    foreach ($specificChargeMenus as $menuName) {
-                        if (stripos($item->menu_name, $menuName) !== false) {
-                            $isMenuMatch = true; break;
-                        }
-                    }
-                    if ($isCategoryMatch || $isMenuMatch) {
-                        $unitPrice += 2000; // Tambah 2rb ke data detail
-                    }
+                if ($isTakeAway && (stripos($item->category, 'Bakso') !== false || stripos($item->menu_name, 'Bakpau') !== false)) {
+                    $uPrice += 2000;
                 }
 
-                $detail->price = $unitPrice;
-                $detail->subtotal = $unitPrice * $item->quantity;
+                $detail->price = $uPrice;
+                $detail->subtotal = $uPrice * $item->quantity;
                 
-                // Gabungkan catatan item dan topping
                 $finalNote = $item->notes ?? '';
                 if (!empty($addonNamesArray)) {
                     $addonString = "Topping: " . implode(", ", $addonNamesArray);
-                    if (!empty($finalNote)) {
-                        $finalNote .= " | " . $addonString;
-                    } else {
-                        $finalNote = $addonString;
-                    }
+                    $finalNote = empty($finalNote) ? $addonString : $finalNote . " | " . $addonString;
                 }
 
                 $detail->item_notes = $finalNote;
                 $detail->save();
             }
 
-            // Midtrans Params
             $params = [
                 'transaction_details' => [
                     'order_id' => $order->id . '-' . time(),
@@ -329,13 +273,11 @@ class CheckoutController extends Controller
             $order->snap_token = $snapToken;
             $order->save();
 
-            // Bersihkan Keranjang
             DB::table('cart_items')->where(function($query) use ($user) {
                 $query->where('user_id', $user->id)
                       ->orWhere('session_id', session()->getId());
             })->delete();
             
-            // Hapus session meja
             session()->forget(['table_number', 'table_area']); 
 
             DB::commit();
@@ -345,5 +287,40 @@ class CheckoutController extends Controller
             DB::rollback();
             return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * FUNGSI KIRIM NOTIFIKASI KE ADMIN VIA FIREBASE
+     */
+    private function sendNotificationToAdmin($order)
+    {
+        // Ambil token fcm dari user role owner/admin
+        $tokens = User::whereIn('role', ['owner', 'admin'])
+                      ->whereNotNull('fcm_token')
+                      ->pluck('fcm_token')
+                      ->toArray();
+
+        if (empty($tokens)) return;
+
+        $serverKey = env('FIREBASE_SERVER_KEY');
+        $url = 'https://fcm.googleapis.com/fcm/send';
+
+        $payload = [
+            "registration_ids" => $tokens,
+            "notification" => [
+                "title" => "🔔 ADA PESANAN BARU!",
+                "body" => "Order #{$order->id} dari {$order->customer_name} baru saja masuk. Cek sekarang!",
+                "icon" => asset('assets/images/GALA.png'),
+                "sound" => "default"
+            ],
+            "data" => [
+                "order_id" => $order->id
+            ]
+        ];
+
+        Http::withHeaders([
+            'Authorization' => 'key=' . $serverKey,
+            'Content-Type' => 'application/json',
+        ])->post($url, $payload);
     }
 }
