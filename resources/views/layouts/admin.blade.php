@@ -112,6 +112,7 @@
             {{-- 3. MENU: SEMUA (OWNER & KASIR) --}}
             <li><a href="{{ route('admin.menu.index') }}" class="menu-item {{ Route::is('admin.menu*') ? 'active' : '' }}"><i class="fas fa-utensils"></i> Manajemen Menu</a></li>
             
+            <li><a href="{{ route('admin.reviews.index') }}" class="menu-item {{ Route::is('admin.reviews*') ? 'active' : '' }}"><i class="fas fa-star"></i> Manajemen Review</a></li>
             {{-- 4. FITUR OWNER (PROMO, LAPORAN, USER) --}}
             @if(Auth::user()->role == 'owner')
                 <li><a href="{{ route('admin.promotions.index') }}" class="menu-item {{ Route::is('admin.promotions*') ? 'active' : '' }}"><i class="fas fa-tags"></i> Diskon & Voucher</a></li>
