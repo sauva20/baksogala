@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}"> {{-- TAMBAHAN: META CSRF AGAR AJAX AMAN --}}
     <title>@yield('title', 'Admin Dashboard') - Bakso Gala</title>
     
     {{-- CSS Admin --}}
@@ -316,15 +317,14 @@
     @endif
 </script>
 
-{{-- SCRIPT FIREBASE (SAYA GABUNGKAN SESUAI REQUEST) --}}
+{{-- SCRIPT FIREBASE LENGKAP DENGAN AJAX PENYIMPAN TOKEN --}}
 <script type="module">
-  // Import functions (Saya tambahkan 'firebase-messaging' karena script asli Anda hanya analytics)
-  // Versi tetap menggunakan 12.9.0 sesuai script yang Anda berikan
+  // Import functions
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
   import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-analytics.js";
   import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-messaging.js";
 
-  // Konfigurasi Firebase Anda (Sesuai yang Anda paste)
+  // Konfigurasi Firebase Anda
   const firebaseConfig = {
     apiKey: "AIzaSyDmAom7VDb0OkTijt0Hf5UE3YB1kuNvywA",
     authDomain: "pondasikita-465612.firebaseapp.com",
@@ -338,9 +338,6 @@
   // Initialize Firebase
   const app = initializeApp(firebaseConfig);
   const analytics = getAnalytics(app);
-  
-  // --- TAMBAHAN: LOGIKA AGAR NOTIFIKASI JALAN ---
-  // Kita perlu mengaktifkan Messaging agar bisa terima pesan
   const messaging = getMessaging(app);
 
   function requestPermission() {
@@ -349,12 +346,25 @@
       if (permission === 'granted') {
         console.log('Notification permission granted.');
         
-        // PENTING: GANTI 'MASUKKAN_VAPID_KEY_DISINI' DENGAN KEY PAIR DARI CONSOLE
-        // (Tanpa ini, token tidak bisa dibuat)
+        // Mengambil Token Device & Menyimpannya ke Database
         getToken(messaging, { vapidKey: 'BKKkRu1AiCDLOEndKleGE3P0yQunprYaUppLGulYJJmbiy3NupZ6RrMxI4fX8HfLnb-Opy7hcH-ObnXi0YDCT9c' }).then((currentToken) => {
           if (currentToken) {
             console.log('Token Device:', currentToken);
-            // TODO: Kirim token ini ke server Anda via AJAX untuk disimpan
+            
+            // --- BAGIAN INI SUDAH DIPERBAIKI (AJAX) ---
+            fetch("{{ route('update.fcm-token') }}", {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ token: currentToken })
+            })
+            .then(response => response.json())
+            .then(data => console.log("Status Simpan Token:", data))
+            .catch(error => console.error("Gagal Simpan Token:", error));
+            // ------------------------------------------
+
           } else {
             console.log('No registration token available.');
           }
@@ -373,7 +383,7 @@
   onMessage(messaging, (payload) => {
     console.log('Message received. ', payload);
     
-    // 1. Bunyikan Alarm (Menggunakan audio ID 'alarmSound' yang sudah ada di HTML Anda)
+    // 1. Bunyikan Alarm
     const alarmAudio = document.getElementById('alarmSound');
     if(alarmAudio) {
         alarmAudio.currentTime = 0;
@@ -381,7 +391,7 @@
         alarmAudio.play().catch(e => console.log("Audio play error:", e));
     }
 
-    // 2. Tampilkan SweetAlert (Sama seperti gaya alert Anda yang lain)
+    // 2. Tampilkan SweetAlert
     Swal.fire({
         title: payload.notification.title,
         text: payload.notification.body,
