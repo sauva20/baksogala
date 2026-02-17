@@ -23,11 +23,12 @@
             
             /* --- KUNCI SCROLL MANUAL --- */
             overflow-x: auto;             /* Wajib agar bisa discroll samping */
-            scroll-snap-type: x mandatory; /* Efek magnet */
             -webkit-overflow-scrolling: touch; /* Scroll licin di iPhone */
             
             padding: 20px 5px;
-            scroll-behavior: smooth;
+            
+            /* PERBAIKAN: Harus 'auto' agar reset loop di JS bisa instan/tidak terlihat */
+            scroll-behavior: auto; 
             
             /* Sembunyikan Scrollbar */
             -ms-overflow-style: none;
@@ -285,7 +286,7 @@
                 
                 // Jika sudah sampai ke konten duplikat (setengah dari total lebar)
                 // Pindahkan balik ke posisi 0 tanpa kelihatan (Instant)
-                if (slider.scrollLeft >= slider.scrollWidth / 2) {
+                if (slider.scrollLeft >= (slider.scrollWidth / 2)) {
                     slider.scrollLeft = 0;
                 }
             }
