@@ -256,69 +256,12 @@
 </footer>
 
 <script>
-    // --- 1. LOGIKA HAMBURGER MENU (YANG LAMA) ---
     const hamburger = document.getElementById('hamburgerMenu');
     if (hamburger) {
         hamburger.addEventListener('click', function() {
             document.getElementById('mainNav').classList.toggle('active');
         });
     }
-
-    // --- 2. LOGIKA AUTO SCROLL SLIDER ---
-    document.addEventListener("DOMContentLoaded", function() {
-        const slider = document.querySelector('.testimonials-slider');
-        
-        // Cek jika slider ada isinya
-        if (slider) {
-            let isDown = false;
-            let startX;
-            let scrollLeft;
-            let autoScrollInterval;
-
-            // Fungsi untuk menjalankan Auto Scroll
-            const startAutoScroll = () => {
-                autoScrollInterval = setInterval(() => {
-                    // Cek lebar kartu pertama + gap (20px)
-                    const cardWidth = slider.querySelector('.testimonial-card').offsetWidth + 20; 
-                    
-                    // Cek apakah sudah mentok kanan?
-                    const maxScrollLeft = slider.scrollWidth - slider.clientWidth;
-                    
-                    if (slider.scrollLeft >= maxScrollLeft - 10) {
-                        // Jika mentok kanan, balik ke awal dengan smooth
-                        slider.scrollTo({ left: 0, behavior: 'smooth' });
-                    } else {
-                        // Scroll ke kanan 1 kartu
-                        slider.scrollBy({ left: cardWidth, behavior: 'smooth' });
-                    }
-                }, 3000); // Ganti 3000 dengan kecepatan (3000ms = 3 detik)
-            };
-
-            // Fungsi untuk Stop Auto Scroll
-            const stopAutoScroll = () => {
-                clearInterval(autoScrollInterval);
-            };
-
-            // Jalankan Auto Scroll saat halaman dimuat
-            startAutoScroll();
-
-            // --- FITUR PINTAR: STOP SAAT DISENTUH USER ---
-            
-            // Saat Mouse/Jari masuk ke area slider -> STOP
-            slider.addEventListener('mouseenter', stopAutoScroll);
-            slider.addEventListener('touchstart', stopAutoScroll, { passive: true });
-
-            // Saat Mouse/Jari keluar dari area slider -> JALAN LAGI
-            slider.addEventListener('mouseleave', startAutoScroll);
-            slider.addEventListener('touchend', startAutoScroll);
-            
-            // Deteksi scroll manual user (opsional, biar lebih responsif)
-            slider.addEventListener('scroll', () => {
-                // Bisa dikosongkan, browser handle manual scroll secara native
-            });
-        }
-    });
 </script>
-
 </body>
 </html>
