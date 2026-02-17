@@ -23,12 +23,11 @@
             
             /* --- KUNCI SCROLL MANUAL --- */
             overflow-x: auto;             /* Wajib agar bisa discroll samping */
+            scroll-snap-type: x mandatory; /* Efek magnet */
             -webkit-overflow-scrolling: touch; /* Scroll licin di iPhone */
             
             padding: 20px 5px;
-            
-            /* PERBAIKAN: Harus 'auto' agar reset loop di JS bisa instan/tidak terlihat */
-            scroll-behavior: auto; 
+            scroll-behavior: smooth;
             
             /* Sembunyikan Scrollbar */
             -ms-overflow-style: none;
@@ -159,13 +158,14 @@
         </div>
     </section>
 
-    {{-- TESTIMONIALS (MANUAL SCROLL + AUTO INFINITE) --}}
+    {{-- TESTIMONIALS (MANUAL SCROLL + AUTO SLIDE) --}}
     <section class="testimonials-section">
         <div class="container">
             <h2>Kata Mereka Tentang Bakso Gala</h2>
             
             @if(isset($reviews) && $reviews->count() > 0)
                 <div class="testimonials-slider" id="reviewSlider">
+                    {{-- Diurutkan dari yang terbaru --}}
                     @foreach($reviews->sortByDesc('created_at') as $review)
                         <div class="testimonial-card">
                             <div class="customer-photo">
@@ -211,6 +211,7 @@
                     </div>
                 </div>
             @endif
+
         </div>
     </section>
 
@@ -269,41 +270,40 @@
         });
     }
 
-    // --- 2. LOGIKA REAL INFINITE LOOP ---
-    const slider = document.getElementById('reviewSlider');
-    
-    if (slider && slider.children.length > 1) {
-        // Gandakan elemen di dalam slider agar looping terasa tanpa ujung
-        const originalContent = slider.innerHTML;
-        slider.innerHTML += originalContent; 
+    // --- 2. LOGIKA AUTO SLIDE (GAYA LAMA + LOOPING) ---
+    document.addEventListener("DOMContentLoaded", function() {
+        const slider = document.getElementById('reviewSlider');
+        if (!slider) return;
 
-        let isUserInteracting = false;
+        let autoSlideInterval;
 
-        // Fungsi Auto Scroll pelan
-        function autoScroll() {
-            if (!isUserInteracting) {
-                slider.scrollLeft += 1; // Geser 1 pixel
-                
-                // Jika sudah sampai ke konten duplikat (setengah dari total lebar)
-                // Pindahkan balik ke posisi 0 tanpa kelihatan (Instant)
-                if (slider.scrollLeft >= (slider.scrollWidth / 2)) {
-                    slider.scrollLeft = 0;
+        const startAutoSlide = () => {
+            autoSlideInterval = setInterval(() => {
+                // Ambil lebar satu kartu + gap
+                const card = slider.querySelector('.testimonial-card');
+                const scrollAmount = card.offsetWidth + 20; 
+
+                // Jika sudah mentok kanan, balik ke awal (0)
+                if (slider.scrollLeft + slider.clientWidth >= slider.scrollWidth - 10) {
+                    slider.scrollTo({ left: 0, behavior: 'smooth' });
+                } else {
+                    // Geser ke kanan satu kartu
+                    slider.scrollBy({ left: scrollAmount, behavior: 'smooth' });
                 }
-            }
-        }
+            }, 3000); // Geser setiap 3 detik
+        };
 
-        // Jalankan auto scroll setiap 30 milidetik (sangat smooth)
-        let scrollInterval = setInterval(autoScroll, 30);
+        const stopAutoSlide = () => clearInterval(autoSlideInterval);
 
-        // Hentikan auto scroll kalau user lagi swipe manual
-        slider.addEventListener('touchstart', () => isUserInteracting = true);
-        slider.addEventListener('mousedown', () => isUserInteracting = true);
-        
-        // Lanjutkan auto scroll setelah user selesai interaksi
-        slider.addEventListener('touchend', () => isUserInteracting = false);
-        slider.addEventListener('mouseup', () => isUserInteracting = false);
-        slider.addEventListener('mouseleave', () => isUserInteracting = false);
-    }
+        // Jalankan
+        startAutoSlide();
+
+        // Pause saat user sentuh/scroll manual
+        slider.addEventListener('touchstart', stopAutoSlide);
+        slider.addEventListener('mousedown', stopAutoSlide);
+        slider.addEventListener('touchend', startAutoSlide);
+        slider.addEventListener('mouseup', startAutoSlide);
+    });
 </script>
 
 </body>
