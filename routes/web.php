@@ -128,9 +128,12 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
         // Dashboard Statistik
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-        // Generator QR Code
+// ... di dalam Group Route Admin Owner ...
+        
         Route::get('/generate-qr', function () {
-            $areas = ['Lantai 2 Gym', 'Indoor More', 'Depan Utama'];
+            // TAMBAHKAN 'Area Photobooth' DI SINI
+            $areas = ['Lantai 2 Gym', 'Indoor More', 'Depan Utama', 'Area Photobooth'];
+            
             $totalMejaPerArea = 20; 
             return view('admin.print_qr', compact('areas', 'totalMejaPerArea'));
         })->name('qr.generate');
