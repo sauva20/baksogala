@@ -158,22 +158,15 @@
         </div>
     </section>
 
-    {{-- TESTIMONIALS (MANUAL SCROLL + AUTO REWIND) --}}
+    {{-- TESTIMONIALS (MANUAL SCROLL + AUTO INFINITE) --}}
     <section class="testimonials-section">
         <div class="container">
             <h2>Kata Mereka Tentang Bakso Gala</h2>
             
             @if(isset($reviews) && $reviews->count() > 0)
-                {{-- ID ditambahkan untuk Script Auto Rewind --}}
                 <div class="testimonials-slider" id="reviewSlider">
-                    
-                    {{-- 
-                       PERBAIKAN URUTAN: 
-                       Menggunakan sortByDesc('created_at') agar yang terbaru muncul duluan 
-                    --}}
                     @foreach($reviews->sortByDesc('created_at') as $review)
                         <div class="testimonial-card">
-                            {{-- Foto Customer --}}
                             <div class="customer-photo">
                                 @if($review->photo)
                                     <img src="{{ asset('uploads/' . $review->photo) }}" alt="Foto Review">
@@ -184,24 +177,20 @@
                                 @endif
                             </div>
 
-                            {{-- Bintang Rating --}}
                             <div style="color: #ffc700; margin-bottom: 10px; font-size: 0.9rem;">
                                 @for($i=0; $i < $review->rating; $i++)
                                     <i class="fas fa-star"></i>
                                 @endfor
                             </div>
 
-                            {{-- Komentar --}}
                             <p style="font-style: italic; color: #555; font-size: 0.95rem; line-height: 1.5; margin-bottom: 15px;">
                                 "{{ Str::limit($review->comment, 120) }}"
                             </p>
 
-                            {{-- Nama Customer --}}
                             <cite class="customer-name">
                                 - {{ $review->order->customer_name ?? 'Pelanggan Setia' }}
                             </cite>
 
-                            {{-- Badge AI --}}
                             <div class="ai-badge">
                                 <i class="fas fa-check-circle"></i> Pilihan AI
                             </div>
@@ -209,7 +198,6 @@
                     @endforeach
                 </div>
             @else
-                {{-- Fallback --}}
                 <div class="testimonials-slider">
                     <div class="testimonial-card">
                         <div class="customer-photo">
@@ -222,7 +210,6 @@
                     </div>
                 </div>
             @endif
-
         </div>
     </section>
 
@@ -281,25 +268,40 @@
         });
     }
 
-    // --- 2. LOGIKA AUTO REWIND (LOOPING SEMU) ---
-    // Script ini akan mengecek jika user sudah scroll mentok kanan, 
-    // dia akan otomatis balik ke kiri (awal) setelah 1 detik.
+    // --- 2. LOGIKA REAL INFINITE LOOP ---
     const slider = document.getElementById('reviewSlider');
     
-    if (slider) {
-        slider.addEventListener('scroll', () => {
-            // Cek apakah sudah mentok kanan (dengan toleransi 10px)
-            if (slider.scrollLeft + slider.clientWidth >= slider.scrollWidth - 10) {
+    if (slider && slider.children.length > 1) {
+        // Gandakan elemen di dalam slider agar looping terasa tanpa ujung
+        const originalContent = slider.innerHTML;
+        slider.innerHTML += originalContent; 
+
+        let isUserInteracting = false;
+
+        // Fungsi Auto Scroll pelan
+        function autoScroll() {
+            if (!isUserInteracting) {
+                slider.scrollLeft += 1; // Geser 1 pixel
                 
-                // Balik ke awal setelah 1 detik
-                setTimeout(() => {
-                    slider.scrollTo({
-                        left: 0,
-                        behavior: 'smooth'
-                    });
-                }, 1000); 
+                // Jika sudah sampai ke konten duplikat (setengah dari total lebar)
+                // Pindahkan balik ke posisi 0 tanpa kelihatan (Instant)
+                if (slider.scrollLeft >= slider.scrollWidth / 2) {
+                    slider.scrollLeft = 0;
+                }
             }
-        });
+        }
+
+        // Jalankan auto scroll setiap 30 milidetik (sangat smooth)
+        let scrollInterval = setInterval(autoScroll, 30);
+
+        // Hentikan auto scroll kalau user lagi swipe manual
+        slider.addEventListener('touchstart', () => isUserInteracting = true);
+        slider.addEventListener('mousedown', () => isUserInteracting = true);
+        
+        // Lanjutkan auto scroll setelah user selesai interaksi
+        slider.addEventListener('touchend', () => isUserInteracting = false);
+        slider.addEventListener('mouseup', () => isUserInteracting = false);
+        slider.addEventListener('mouseleave', () => isUserInteracting = false);
     }
 </script>
 
