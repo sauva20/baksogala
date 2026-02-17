@@ -167,3 +167,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
     });
 
 });
+
+// Route sementara untuk tes HP bunyi atau tidak
+Route::get('/tes-notif', function () {
+    $controller = new \App\Http\Controllers\Controller();
+    $hasil = $controller->sendNotifToAdmin("🔔 TES BUNYI!", "Halo Bos, ini tes notifikasi dari sistem Bakso Gala.");
+    
+    return "Status Kirim: " . $hasil;
+});
