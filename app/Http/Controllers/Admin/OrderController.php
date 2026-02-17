@@ -13,19 +13,26 @@ class OrderController extends Controller
     // --- HALAMAN UTAMA PESANAN ---
     public function index(Request $request)
     {
-        $status = $request->get('status');
+        // Ambil status dari URL, default ke 'today' (Hari Ini)
+        $status = $request->get('status', 'today');
         
-        // Gunakan Eloquent untuk mengambil data
         $query = Order::query()->orderBy('created_at', 'desc');
 
-        // Filter berdasarkan status jika ada
-        if ($status && $status != 'all') {
+        // --- LOGIKA FILTER ---
+        if ($status == 'today') {
+            // Jika tab 'Hari Ini', ambil pesanan tanggal sekarang saja
+            $query->whereDate('created_at', Carbon::now()->toDateString());
+        } elseif ($status && $status != 'all') {
+            // Jika tab status (Baru/Dimasak/dll), filter kolom status
             $query->where('status', $status);
         }
 
         // Pagination 10 item per halaman
         $orders = $query->paginate(10);
         
+        // Pastikan parameter URL tetap ada saat pindah halaman (pagination)
+        $orders->appends(['status' => $status]);
+
         return view('admin.orders.index', compact('orders'));
     }
 
@@ -39,7 +46,8 @@ class OrderController extends Controller
         $order = Order::findOrFail($id);
         $order->status = $request->status;
         
-        // Logic Tambahan: Jika status diubah jadi completed/ready, kita anggap sudah lunas
+        // Logic Tambahan: Jika status diubah jadi 'ready' atau 'completed'
+        // Kita asumsikan pesanan sudah pasti lunas (aman untuk cash/manual)
         if (in_array($request->status, ['ready', 'completed'])) {
             $order->payment_status = 'paid';
         }
@@ -58,7 +66,7 @@ class OrderController extends Controller
         // 1. LOGIKA AUTO-CANCEL (Bersihkan Data Lama)
         // Batalkan pesanan yang statusnya 'new'/'pending' DAN belum bayar > 10 menit
         Order::where('status', 'new')
-             ->where('payment_status', 'pending') // Atau 'unpaid', sesuaikan database Anda
+             ->where('payment_status', 'pending') // Atau 'unpaid'
              ->where('created_at', '<', Carbon::now()->subMinutes(10))
              ->update(['status' => 'cancelled']);
 
@@ -111,9 +119,11 @@ class OrderController extends Controller
             'order' => [
                 'id' => $order->id,
                 'customer_name' => $order->customer_name,
-                'table_number' => $order->table_number ?? '-', // Handle jika null (takeaway)
+                'customer_phone' => $order->customer_phone,
+                'shipping_address' => $order->shipping_address, // Untuk Lokasi Meja
+                'table_number' => $order->table_number ?? '-', 
                 'status' => ucfirst($order->status),
-                'payment_status' => ucfirst($order->payment_status),
+                'payment_status' => ucfirst($order->payment_status), // Penting untuk badge LUNAS di modal
                 'total_price' => number_format($order->total_price, 0, ',', '.'),
                 'created_at' => $order->created_at->format('d M Y H:i'),
                 'notes' => $order->order_notes ?? '-'
