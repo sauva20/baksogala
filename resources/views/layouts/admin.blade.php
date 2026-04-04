@@ -10,9 +10,7 @@
 
     <title>@yield('title', 'Admin Dashboard') - Bakso Gala</title>
 
-    {{-- CSS Admin --}}
     <link rel="stylesheet" href="{{ asset('assets/css/global.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/admin.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.cdnfonts.com/css/bolton-sans" rel="stylesheet">
 
@@ -22,115 +20,148 @@
     @yield('styles')
 
     <style>
-        /* --- CSS DEFAULT (DESKTOP) --- */
-        .admin-wrapper { display: flex; min-height: 100vh; width: 100%; overflow-x: hidden; }
-        .admin-sidebar { width: 260px; min-width: 260px; flex-shrink: 0; background-color: #2c3e50; color: white; min-height: 100vh; display: flex; flex-direction: column; transition: 0.3s; z-index: 1001; }
-        .sidebar-logo { padding: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); position: relative; }
-        .sidebar-logo img { max-width: 60px; height: auto; display: block; margin: 0 auto 10px auto; }
-        .admin-main-content { flex-grow: 1; width: calc(100% - 260px); background-color: #f4f6f9; display: flex; flex-direction: column; transition: 0.3s; }
-        .admin-header { display: flex; justify-content: space-between; align-items: center; height: 70px; padding: 0 30px; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 25px; flex-shrink: 0; position: relative; z-index: 1000; }
-        .header-left { display: flex; align-items: center; gap: 15px; }
-        .admin-content-inner { flex-grow: 1; padding: 30px; }
-        .admin-footer { background-color: #2c3e50; color: #fff; text-align: center; padding: 15px 0; margin-top: auto; }
+        :root {
+            --sidebar-width: 260px;
+            --primary-bg: #2c3e50;
+            --accent-gold: #B1935B;
+        }
 
-        .sidebar-menu { list-style: none; padding: 0; margin: 0; }
-        .sidebar-menu .menu-item { display: block; padding: 15px 20px; color: #bdc3c7; text-decoration: none; transition: 0.3s; border-left: 3px solid transparent; }
-        .sidebar-menu .menu-item:hover, .sidebar-menu .menu-item.active { background-color: #34495e; color: #fff; border-left-color: #B1935B; }
-        .sidebar-menu .menu-item i { margin-right: 10px; width: 20px; text-align: center; }
-        .menu-header { padding: 15px 20px 5px 20px; font-size: 0.75em; color: #7f8c8d; font-weight: bold; letter-spacing: 1px; }
-        .logout-btn-sidebar { width: 100%; text-align: left; background: none; border: none; color: #cbd5e0; padding: 12px 20px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 1em; transition: 0.3s; }
+        body { margin: 0; font-family: 'Bolton', sans-serif; background-color: #f4f6f9; }
+
+        /* --- LAYOUT STRUCTURE --- */
+        .admin-wrapper { display: flex; min-height: 100vh; }
+
+        /* SIDEBAR (Desktop) */
+        .admin-sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--primary-bg);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            z-index: 1050;
+        }
+
+        .sidebar-logo {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .sidebar-logo img { height: 40px; }
+
+        .sidebar-menu { list-style: none; padding: 0; margin: 0; overflow-y: auto; flex-grow: 1; }
+        .menu-header { padding: 15px 20px 5px; font-size: 0.7rem; color: #7f8c8d; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; }
+        .menu-item {
+            display: flex; align-items: center; padding: 12px 20px; color: #bdc3c7;
+            text-decoration: none; border-left: 4px solid transparent; transition: 0.2s;
+        }
+        .menu-item i { width: 25px; font-size: 1.1rem; }
+        .menu-item:hover, .menu-item.active { background: #34495e; color: white; border-left-color: var(--accent-gold); }
+
+        .logout-btn-sidebar {
+            width: 100%; border: none; background: rgba(0,0,0,0.2); color: #ecf0f1;
+            padding: 15px 20px; text-align: left; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 1em; transition: 0.3s;
+        }
         .logout-btn-sidebar:hover { background-color: rgba(255,255,255,0.1); color: white; }
 
-        .notif-wrapper { position: relative; }
-        .btn-notif { color: #555; font-size: 1.3rem; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: 0.3s; cursor: pointer; }
-        .btn-notif:hover { background-color: #f0f2f5; }
-        .badge-dot { position: absolute; top: 8px; right: 8px; width: 10px; height: 10px; background-color: #e74c3c; border-radius: 50%; border: 2px solid white; animation: pulse-dot 2s infinite; }
-        .notif-dropdown { position: absolute; top: 55px; right: -10px; width: 320px; background: white; border-radius: 12px; box-shadow: 0 5px 25px rgba(0,0,0,0.15); overflow: hidden; display: none; border: 1px solid #eee; z-index: 1100; }
-        .notif-dropdown.show { display: block; }
-        .notif-header { background-color: #2c3e50; color: white; padding: 15px; }
+        /* MAIN CONTENT */
+        .admin-main-content { flex-grow: 1; display: flex; flex-direction: column; min-width: 0; }
 
-        .user-dropdown { display: flex; align-items: center; gap: 12px; }
+        /* HEADER */
+        .admin-header {
+            height: 70px; background: white; display: flex; align-items: center;
+            justify-content: space-between; padding: 0 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            position: sticky; top: 0; z-index: 1000;
+        }
+
+        .header-left { display: flex; align-items: center; gap: 15px; }
+        #sidebarToggle { background: none; border: none; font-size: 1.3rem; cursor: pointer; color: #555; }
+
+        .admin-content-inner { padding: 25px; flex-grow: 1; }
+
+        /* NOTIF & USER */
+        .header-right { display: flex; align-items: center; gap: 20px; }
+        .notif-wrapper { position: relative; }
+        .btn-notif { font-size: 1.2rem; cursor: pointer; position: relative; color: #555; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; transition: 0.3s; }
+        .btn-notif:hover { background-color: #f0f2f5; }
+        .badge-dot {
+            position: absolute; top: 8px; right: 8px; width: 10px; height: 10px;
+            background: #e74c3c; border-radius: 50%; border: 2px solid white;
+            animation: pulse-dot 2s infinite;
+        }
+
+        .user-profile { display: flex; align-items: center; gap: 10px; }
         .user-info-text { display: flex; flex-direction: column; text-align: right; }
         .user-name-bold { font-weight: 700; color: #333; font-size: 0.9em; }
         .user-role-badge { font-size: 0.75em; color: #888; text-transform: uppercase; }
-        .user-avatar-circle { width: 40px; height: 40px; background-color: #2c3e50; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .user-avatar {
+            width: 40px; height: 40px; background: var(--primary-bg); color: white;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;
+        }
 
         @keyframes pulse-dot { 0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); } 70% { box-shadow: 0 0 0 5px rgba(231, 76, 60, 0); } 100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); } }
 
-        /* --- PERBAIKAN CSS MOBILE (RESPONSIVE) --- */
+        /* --- MOBILE RESPONSIVE (BREAKPOINT 992PX) --- */
         @media (max-width: 992px) {
-            /* 1. Ubah layout jadi vertikal (Sidebar di atas, konten di bawah) */
-            .admin-wrapper { flex-direction: column; }
-
-            /* 2. Sidebar jadi header bar kecil */
             .admin-sidebar {
-                width: 100% !important;
-                min-width: 100% !important;
-                min-height: auto;
-                position: relative;
-                z-index: 2000;
+                position: fixed;
+                left: -260px; /* Sembunyi ke kiri */
+                top: 0;
+                bottom: 0;
+                transition: 0.3s;
             }
+            .admin-sidebar.show { left: 0; }
 
-            /* 3. Tampilkan tombol hamburger yang sebelumnya hidden */
-            #mobileSidebarToggle {
-                display: block !important;
-                position: absolute;
-                right: 20px;
-                top: 50%;
-                transform: translateY(-50%);
-                background: none;
-                border: none;
-                color: white;
-                font-size: 1.5rem;
-                cursor: pointer;
+            .sidebar-overlay {
+                display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(0,0,0,0.5); z-index: 1040;
             }
+            .sidebar-overlay.show { display: block; }
 
-            /* 4. Sembunyikan menu by default */
-            .sidebar-menu {
-                display: none;
-                width: 100%;
-                background: #2c3e50;
-            }
+            .admin-header { padding: 0 15px; height: 60px; }
+            .greeting-text { display: none; } /* Sembunyikan teks sapaan di HP agar tidak sesak */
+            .user-info-text { display: none; } /* Sembunyikan nama di HP */
 
-            /* 5. Tampilkan menu saat active (Overlay di atas konten) */
-            .sidebar-menu.active {
-                display: block !important;
-                position: absolute;
-                top: 100%;
-                left: 0;
-                z-index: 2000;
-                box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-            }
-
-            /* 6. Konten utama full width */
-            .admin-main-content { width: 100% !important; }
-
-            /* 7. Header adjustment */
-            .admin-header { padding: 10px 15px; }
-            #sidebarToggle { display: none; /* Sembunyikan toggle desktop */ }
-
-            /* 8. Fix Notif Dropdown di HP */
-            .notif-dropdown { right: -60px; width: 300px; }
-
-            /* 9. Text adjustment */
-            .greeting-text { font-size: 0.9rem; }
-            .user-info-text { display: none; /* Hemat tempat di HP */ }
+            .notif-dropdown { width: 280px; right: -50px; }
         }
+
+        /* NOTIF DROPDOWN */
+        .notif-dropdown {
+            position: absolute; top: 55px; right: -10px; width: 320px; background: white;
+            border-radius: 12px; box-shadow: 0 5px 25px rgba(0,0,0,0.15); border: 1px solid #eee;
+            display: none; overflow: hidden; z-index: 1100;
+        }
+        .notif-dropdown.show { display: block; }
+        .notif-header { background: var(--primary-bg); color: white; padding: 15px; font-size: 0.9rem; }
+        .notif-body { max-height: 300px; overflow-y: auto; padding: 10px; }
+        .notif-empty { text-align: center; color: #999; padding: 20px; }
+        .notif-empty i { font-size: 2rem; margin-bottom: 10px; display: block; }
+        .notif-footer { padding: 10px; text-align: center; border-top: 1px solid #eee; }
+        .notif-footer a { font-size: 0.8rem; color: var(--accent-gold); font-weight: bold; text-decoration: none; }
     </style>
 </head>
 <body>
 
+<!-- Overlay untuk klik di luar sidebar mobile -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
 <div class="admin-wrapper">
+    <!-- SIDEBAR -->
     <aside class="admin-sidebar" id="adminSidebar">
         <div class="sidebar-logo">
-            <div style="display:flex; align-items:center; gap:10px; justify-content: center;">
-                <img src="{{ asset('assets/images/GALA.png') }}" alt="Gala">
-                <h3 style="color: white; margin:0; font-size: 1.2em;">Bakso Gala</h3>
-            </div>
-            <button id="mobileSidebarToggle" style="display:none;"><i class="fas fa-bars"></i></button>
+            <img src="{{ asset('assets/images/GALA.png') }}" alt="Gala">
+            <h3 style="color: white; margin:0; font-size: 1.2em;">Bakso Gala</h3>
         </div>
 
-        <ul class="sidebar-menu" id="sidebarMenu">
+        <ul class="sidebar-menu">
             @if(Auth::user()->role == 'owner')
                 <li><a href="{{ route('admin.dashboard') }}" class="menu-item {{ Route::is('admin.dashboard') ? 'active' : '' }}"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
             @endif
@@ -146,63 +177,96 @@
                 <li><a href="{{ route('admin.reports.index') }}" class="menu-item {{ Route::is('admin.reports*') ? 'active' : '' }}"><i class="fas fa-chart-line"></i> Laporan</a></li>
                 <li><a href="{{ route('admin.users.index') }}" class="menu-item {{ Route::is('admin.users*') ? 'active' : '' }}"><i class="fas fa-users"></i> Data Pelanggan</a></li>
             @endif
-
-            <li class="menu-header">AKUN</li>
-            <li>
-                <form action="{{ route('admin.logout') }}" method="POST">
-                    @csrf
-                    <button type="submit" class="logout-btn-sidebar"><i class="fas fa-sign-out-alt"></i> Logout</button>
-                </form>
-            </li>
         </ul>
+
+        <form action="{{ route('admin.logout') }}" method="POST" style="margin-top: auto;">
+            @csrf
+            <button type="submit" class="logout-btn-sidebar"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </form>
     </aside>
 
+    <!-- MAIN -->
     <div class="admin-main-content">
         <header class="admin-header">
             <div class="header-left">
-                <button id="sidebarToggle" class="btn-icon" style="background:none; border:none; font-size:1.2em; cursor:pointer;"><i class="fas fa-bars"></i></button>
-                <span class="greeting-text">Halo, {{ Auth::user()->name }}! 👋</span>
+                <button id="sidebarToggle"><i class="fas fa-bars"></i></button>
+                <span class="greeting-text">Halo, <b>{{ Auth::user()->name }}</b>! 👋</span>
             </div>
 
-            <div class="header-right" style="display:flex; align-items:center; gap:20px;">
-                <div class="notif-wrapper" id="notifWrapper">
-                    <div class="btn-notif" onclick="toggleNotifDropdown()">
+            <div class="header-right">
+                <div class="notif-wrapper">
+                    <div class="btn-notif" id="notifBtn">
                         <i class="fas fa-bell"></i>
-                        <span class="badge-dot" style="display: none;" id="navBadge"></span>
+                        <span class="badge-dot" id="navBadge" style="display:none;"></span>
                     </div>
                     <div class="notif-dropdown" id="notifDropdown">
                         <div class="notif-header"><h5>Pesanan Masuk</h5></div>
-                        <div class="notif-body"><div class="notif-empty"><i class="fas fa-bell-slash"></i><p>Tidak ada notifikasi baru.</p></div></div>
+                        <div class="notif-body" id="notifBody">
+                            <div class="notif-empty">
+                                <i class="fas fa-bell-slash"></i>
+                                <p>Tidak ada notifikasi baru.</p>
+                            </div>
+                        </div>
                         <div class="notif-footer"><a href="{{ route('admin.orders.index') }}">Lihat Semua Pesanan</a></div>
                     </div>
                 </div>
 
-                <div class="user-dropdown">
+                <div class="user-profile">
                     <div class="user-info-text">
                         <span class="user-name-bold">{{ Auth::user()->name }}</span>
                         <span class="user-role-badge">{{ ucfirst(Auth::user()->role) }}</span>
                     </div>
-                    <div class="user-avatar-circle">{{ substr(Auth::user()->name, 0, 1) }}</div>
+                    <div class="user-avatar">{{ substr(Auth::user()->name, 0, 1) }}</div>
                 </div>
             </div>
         </header>
 
-        <div class="admin-content-inner">
+        <main class="admin-content-inner">
             @yield('content')
-        </div>
+        </main>
     </div>
 </div>
 
 <audio id="alarmSound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto" loop></audio>
 
+{{-- SweetAlert JS --}}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
-    // --- 1. GLOBALS & SYNC ---
+    // --- 1. TOGGLE SIDEBAR & OVERLAY ---
+    const sidebar = document.getElementById('adminSidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    const toggleBtn = document.getElementById('sidebarToggle');
+
+    toggleBtn.addEventListener('click', () => {
+        sidebar.classList.toggle('show');
+        overlay.classList.toggle('show');
+    });
+
+    overlay.addEventListener('click', () => {
+        sidebar.classList.remove('show');
+        overlay.classList.remove('show');
+    });
+
+    // --- 2. NOTIF DROPDOWN ---
+    const notifBtn = document.getElementById('notifBtn');
+    const notifDropdown = document.getElementById('notifDropdown');
+
+    notifBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        notifDropdown.classList.toggle('show');
+    });
+
+    document.addEventListener('click', () => {
+        notifDropdown.classList.remove('show');
+    });
+
+    // --- 3. GLOBALS & SYNC ---
     let lastGlobalId = {{ \DB::table('orders')->max('id') ?? 0 }};
     let isAlertOpen = false;
     const alarmAudio = document.getElementById('alarmSound');
 
-    // --- 2. AUDIO UNLOCK ---
+    // --- 4. AUDIO UNLOCK ---
     document.body.addEventListener('click', function() {
         if(alarmAudio.paused) {
             alarmAudio.muted = true;
@@ -210,23 +274,7 @@
         }
     }, { once: true });
 
-    // --- 3. SIDEBAR TOGGLE (PERBAIKAN LOGIC) ---
-    document.getElementById('mobileSidebarToggle').addEventListener('click', function() {
-        document.getElementById('sidebarMenu').classList.toggle('active');
-    });
-
-    document.getElementById('sidebarToggle').addEventListener('click', function() {
-        const sidebar = document.getElementById('adminSidebar');
-        const main = document.querySelector('.admin-main-content');
-        if(window.innerWidth > 992) {
-            sidebar.style.display = sidebar.style.display === 'none' ? 'flex' : 'none';
-            main.style.width = sidebar.style.display === 'none' ? '100%' : 'calc(100% - 260px)';
-        }
-    });
-
-    function toggleNotifDropdown() { document.getElementById('notifDropdown').classList.toggle('show'); }
-
-    // --- 4. SHARED ALERT LOGIC ---
+    // --- 5. SHARED ALERT LOGIC ---
     function triggerOrderAlert(id, title, message, type) {
         if(isAlertOpen || id <= lastGlobalId) return;
 
@@ -255,7 +303,7 @@
         });
     }
 
-    // --- 5. POLLING SCRIPT ---
+    // --- 6. POLLING SCRIPT ---
     function checkGlobalOrders() {
         if(isAlertOpen) return;
         fetch('{{ route("admin.orders.checkNew") }}?last_id=' + lastGlobalId)
@@ -268,7 +316,7 @@
     }
     setInterval(checkGlobalOrders, 5000);
 
-    // --- 6. REGISTRASI SERVICE WORKER ---
+    // --- 7. REGISTRASI SERVICE WORKER ---
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/firebase-messaging-sw.js')
         .then(reg => console.log('SW Registered:', reg.scope))
